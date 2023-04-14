@@ -1,38 +1,52 @@
 package com.gafahtec.consultorio.model;
 
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ForeignKey;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-@Data
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+@Getter
+@Setter
 @Entity
 @Table
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+//@EqualsAndHashCode(callSuper=false)
+@ToString(exclude = { "programacionDetalles" })
+@EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Programacion {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer idProgramacion;
-	private int dia;
-	private String horario;
-	private LocalDateTime fecha;
+
+	private Integer idEmpresa;
 	
-	 @ManyToOne(fetch = FetchType.LAZY)
-	    @JoinColumn(name = "id_medico", nullable = false, foreignKey = @ForeignKey(name = "FK_medico"))
-	private Medico medico;
-	 
-	 
+	private Date fechaInicial;
+	private Date fechaFinal;
+
+	private String strFechaInicial;
+    private String strFechaFinal;
+	
+	
+	private String rango;
+
+	private Boolean estado;
+	
+	
+	
+	
+	@JsonIgnore
+	@Builder.Default
+	@OneToMany( mappedBy = "programacion", cascade = { CascadeType.ALL }, orphanRemoval = true)
+	private List<ProgramacionDetalle> programacionDetalles  = new ArrayList<>();
+
+
 }

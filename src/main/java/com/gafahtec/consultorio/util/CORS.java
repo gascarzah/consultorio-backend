@@ -1,28 +1,29 @@
 package com.gafahtec.consultorio.util;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CORS implements Filter {
 
 //	private final List<String> allowedOrigins = Arrays.asList("*");
-	private final List<String> allowedOrigins = Arrays.asList("http://localhost:4200","https://gascarzah.com");
+	private final List<String> allowedOrigins = Arrays.asList("http://localhost:4200",
+	                                                          "https://gascarzah.com",
+	                                                          "http://localhost:3000",
+	                                                          "http://localhost:5173",
+	                                                          "http://127.0.0.1:5173",
+	                                                          "http://172.25.208.1:5173",
+	                                                          "http://192.168.1.15:5173"
+	                                                          );
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 		// TODO Auto-generated method stub
