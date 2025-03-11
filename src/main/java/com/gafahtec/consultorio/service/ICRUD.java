@@ -1,20 +1,18 @@
 package com.gafahtec.consultorio.service;
 
-import java.util.List;
+import java.util.Set;
 
-import com.gafahtec.consultorio.exception.ResourceNotFoundException;
+public interface ICRUD<RQ, RS, ID> {
 
-public interface ICRUD<T, ID> {
+	RS registrar(RQ request);
 
-	T registrar(T t) throws ResourceNotFoundException;
+	RS modificar(RQ request);
 
-	T modificar(T t) throws ResourceNotFoundException;
+	Set<RS> listar();
 
-	List<T> listar() throws ResourceNotFoundException;
+	RS listarPorId(ID id);
 
-	T listarPorId(ID id) throws ResourceNotFoundException;
-
-	void eliminar(ID id) throws ResourceNotFoundException;
+	void eliminar(ID id);
 	
 	
 }

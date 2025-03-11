@@ -4,17 +4,14 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-
 ### STS ###
 .apt_generated
 .classpath
 .factorypath
-project
+.project
 .settings
 .springBeans
 .sts4-cache
-.apt_generated
-.apt_generated_tests
 
 ### IntelliJ IDEA ###
 .idea

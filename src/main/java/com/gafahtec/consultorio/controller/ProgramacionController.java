@@ -1,10 +1,9 @@
 package com.gafahtec.consultorio.controller;
 
 import java.util.List;
+import java.util.Set;
 
-import javax.validation.Valid;
-
-import org.apache.commons.beanutils.BeanUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,12 +21,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gafahtec.consultorio.dto.request.ProgramacionRequest;
+import com.gafahtec.consultorio.dto.response.ProgramacionResponse;
 import com.gafahtec.consultorio.exception.ResourceNotFoundException;
-import com.gafahtec.consultorio.model.Programacion;
+import com.gafahtec.consultorio.model.consultorio.Programacion;
 import com.gafahtec.consultorio.service.IProgramacionService;
 import com.gafahtec.consultorio.util.Constants;
 import com.gafahtec.consultorio.util.Utils;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -42,137 +43,78 @@ public class ProgramacionController {
 
 
     @GetMapping
-    public ResponseEntity<List<Programacion>> listar() throws Exception {
-        List<Programacion> lista = iProgramacionService.listar();
+    public ResponseEntity<Set<ProgramacionResponse>> listar() throws Exception {
+        var lista = iProgramacionService.listar();
         if (lista.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
-        return new ResponseEntity<List<Programacion>>(lista, HttpStatus.OK);
+        return new ResponseEntity<>(lista, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Programacion> listarPorId(@PathVariable("id") Integer id) throws Exception {
-        Programacion obj = iProgramacionService.listarPorId(id);
+    public ResponseEntity<ProgramacionResponse> listarPorId(@PathVariable("id") Integer id) throws Exception {
+        var obj = iProgramacionService.listarPorId(id);
 
         if (obj.getIdProgramacion() == null) {
             throw new ResourceNotFoundException("Id no encontrado " + id);
         }
 
-        return new ResponseEntity<Programacion>(obj, HttpStatus.OK);
+        return new ResponseEntity<>(obj, HttpStatus.OK);
     }
 
-    @GetMapping("/estado/{estado}")
-    public ResponseEntity<Programacion> programacionEstado(@PathVariable("estado") Boolean estado) throws Exception {
-        List<Programacion> list = iProgramacionService.programacionEstado(estado);
-        Programacion obj = null;
-        if (list.isEmpty()) {
-            throw new ResourceNotFoundException("estado no encontrado " + estado);
-        }else {
-           obj = list.get(0); 
-        }
+    @GetMapping("/activo")
+    public ResponseEntity<ProgramacionResponse> programacionActivo() throws Exception {
+        var list = iProgramacionService.programacionActivo().stream().findFirst().orElseThrow(() ->  new ResourceNotFoundException("programacion activa no encontrado "));
+        
 
-        return new ResponseEntity<Programacion>(obj, HttpStatus.OK);
+        return new ResponseEntity<>(list, HttpStatus.OK);
     }
     
     @PostMapping
-    public ResponseEntity<Programacion> registrar(@Valid @RequestBody ProgramacionRequest programacionRequest)
+    public ResponseEntity<ProgramacionResponse> registrar(@Valid @RequestBody ProgramacionRequest programacionRequest)
             throws Exception {
 
-        String strFechaInicial = Utils.getFecha2String(programacionRequest.getFechaInicial());
-        String strFechaFinal = Utils.getFecha2String(programacionRequest.getFechaFinal());
 
-        String rango = strFechaInicial + " - " + strFechaFinal;
-
-        Programacion programacion = new Programacion();
-        BeanUtils.copyProperties(programacion, programacionRequest);
-        programacion.setRango(rango);
-        programacion.setEstado(Constants.ACTIVO);
-        programacion.setStrFechaFinal(strFechaFinal);
-        programacion.setStrFechaInicial(strFechaInicial);
-        Programacion obj = iProgramacionService.registrar(programacion);
+        
+        var obj = iProgramacionService.registrar(programacionRequest);
 
         return new ResponseEntity<>(obj, HttpStatus.CREATED);
 
     }
 
-//	@PostMapping
-//	public ResponseEntity<Programacion> registrar(@Valid @RequestBody ProgramacionRequest programacionRequest) throws Exception{
-//
-//	    String strFechaInicial = Utils.getFecha2String(programacionRequest.getFechaInicial());
-//        String strFechaFinal = Utils.getFecha2String(programacionRequest.getFechaFinal());
-//	    
-//		String rango = strFechaInicial + " - " + strFechaFinal;
-//		List<Programacion> programacionList = iProgramacionService.listarPorRango(rango);
-//		Programacion obj = null;
-//		if(programacionList.isEmpty()) {
-//			Programacion programacion = new Programacion();
-//			BeanUtils.copyProperties(programacion, programacionRequest);
-//			programacion.setRango(rango);
-//			programacion.setEstado(0);
-//			programacion.setStrFechaFinal(strFechaFinal);
-//			programacion.setStrFechaInicial(strFechaInicial);
-//			obj = iProgramacionService.registrar(programacion);
-//		}else{
-//			obj = programacionList.get(0);
-//		}
-//
-//
-//			log.info("resultado : ", obj);
-//			if (obj != null) {
-//			    
-//			    List<ProgramacionDetalle> existeProgramacionMedico = iProgramacionDetalleService.getProgramacionMedico(obj.getIdProgramacion(), programacionRequest.getIdEmpleado());
-//			    
-//			    if(existeProgramacionMedico.isEmpty()) {
-//			    
-//			    List<ProgramacionDetalle> list = iProgramacionDetalleService.generarProgramacionDetalle(obj, programacionRequest);
-//			    
-//			    iCitaService.registrarHorarios(list);
-//			   
-//			    
-//				URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getIdProgramacion()).toUri();
-//				return ResponseEntity.created(location).build();
-//			    }else {
-//			        log.info("Ya existe programacion vinculada a esta semana");
-//			        throw new ResourceNotFoundException("Ya existe programacion vinculada a esta semana");
-//			    }
-//			}
-//			 return new ResponseEntity<>(obj, HttpStatus.CREATED);
-//
-//
-//
-//	}
+
 
     @PutMapping
-    public ResponseEntity<Programacion> modificar(@Valid @RequestBody Programacion p) throws Exception {
-        Programacion obj = iProgramacionService.modificar(p);
-        return new ResponseEntity<Programacion>(obj, HttpStatus.OK);
+    public ResponseEntity<ProgramacionResponse> modificar(@Valid @RequestBody ProgramacionRequest programacionRequest) throws Exception {
+        var obj = iProgramacionService.modificar(programacionRequest);
+        return new ResponseEntity<>(obj, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable("id") Integer id) throws Exception {
-        Programacion obj = iProgramacionService.listarPorId(id);
+        var obj = iProgramacionService.listarPorId(id);
 
         if (obj.getIdProgramacion() == null) {
             throw new ResourceNotFoundException("ID NO ENCONTRADO " + id);
         }
 
         iProgramacionService.eliminar(id);
-        return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("/{idEmpresa}/pageable")
-    public ResponseEntity<Page<Programacion>> listarPageable(
+    public ResponseEntity<Page<ProgramacionResponse>> listarPageable(
             @PathVariable("idEmpresa") Integer idEmpresa,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) throws Exception {
         
-        Pageable paging = PageRequest.of(page, size, Sort.by("idProgramacion").descending());
-        Page<Programacion> paginas = iProgramacionService.listarProgramacionPageable(idEmpresa,paging);
+        var paging = PageRequest.of(page, size, Sort.by("idProgramacion").descending());
+        var paginas = iProgramacionService.listarProgramacionPageable(idEmpresa,paging);
         
-//        Page<Programacion> paginas = iProgramacionService.listarPageable(pageable);
+
         if (paginas.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
-        return new ResponseEntity<Page<Programacion>>(paginas, HttpStatus.OK);
+        return new ResponseEntity<>(paginas, HttpStatus.OK);
     }
 }

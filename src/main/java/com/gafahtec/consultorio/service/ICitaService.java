@@ -1,35 +1,39 @@
 package com.gafahtec.consultorio.service;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.gafahtec.consultorio.model.Cita;
-import com.gafahtec.consultorio.model.ProgramacionDetalle;
+import com.gafahtec.consultorio.dto.request.CitaRequest;
+import com.gafahtec.consultorio.dto.response.CitaResponse;
+import com.gafahtec.consultorio.model.consultorio.Cita;
+import com.gafahtec.consultorio.model.consultorio.ProgramacionDetalle;
 
 
-public interface ICitaService extends ICRUD<Cita,Integer>{
+public interface ICitaService extends ICRUD<CitaRequest, CitaResponse,Integer>{
 
-	Page<Cita> listarPageable(Pageable pageable);
+	Page<CitaResponse> listarPageable(Pageable pageable);
 
     void registrarHorarios(List<ProgramacionDetalle> list);
 
-    List<Cita> listarCitas(Integer idProgramacionDetalle);
+    Set<CitaResponse> listarCitas(Integer idProgramacionDetalle);
 
     Integer eliminar(Integer idCita, Integer idHorario, Integer idProgramacionDetalle);
     
     Integer updateAtencion( Integer idCita);
 
-    List<Cita> listaCitados(Integer idMedico, Integer numeroDiaSemana);
+    Set<CitaResponse> listaCitados(Integer idEmpresa,String numeroDocumento, Integer numeroDiaSemana);
+    
+    Page<CitaResponse> listaHistorialCitaCliente(String numeroDocumento, Pageable paging);
+    
+    
+//    Set<CitaResponse> listaHistorialCitaCliente(Integer idCliente);
 
-    List<Cita> listaHistorialCitaCliente(Integer idCliente);
-
-    Page<Cita> listaHistorialCitaCliente(Integer idCliente, Pageable paging);
-
-
-
-    List<Cita> listarNoAtendidos(Integer idProgramacionDetalle, Integer noAtendidos);
+    Set<Cita> listarNoAtendidos(Integer idProgramacionDetalle, Boolean noAtendidos);
+    
+     Cita modificarToEntity(Cita request);
 
    
 }

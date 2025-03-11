@@ -3,8 +3,9 @@ package com.gafahtec.consultorio.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.gafahtec.consultorio.model.Empresa;
+import com.gafahtec.consultorio.dto.request.EmpresaRequest;
+import com.gafahtec.consultorio.dto.response.EmpresaResponse;
 
-public interface IEmpresaService extends ICRUD<Empresa, Integer>{
-    Page<Empresa> listarPageable(Pageable pageable);
+public interface IEmpresaService extends ICRUD<EmpresaRequest,EmpresaResponse , Integer>{
+    Page<EmpresaResponse> listarPageable(Pageable pageable);
 }

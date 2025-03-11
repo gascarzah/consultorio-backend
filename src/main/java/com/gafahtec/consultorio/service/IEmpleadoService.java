@@ -1,18 +1,18 @@
 package com.gafahtec.consultorio.service;
 
-import com.gafahtec.consultorio.model.Empleado;
-
-import java.util.List;
-
+import com.gafahtec.consultorio.dto.request.EmpleadoRequest;
+import com.gafahtec.consultorio.dto.response.EmpleadoResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Set;
 
-public interface IEmpleadoService extends ICRUD<Empleado,Integer>{
 
-	Page<Empleado> listarPageable(Pageable pageable);
+public interface IEmpleadoService extends ICRUD<EmpleadoRequest, EmpleadoResponse, Integer>{
 
-    List<Empleado> listarPorRol(Integer idRol);
+	Page<EmpleadoResponse> listarPageable(Pageable pageable);
+
+	Set<EmpleadoResponse> listarPorRol(Integer idRol);
     
-    List<Empleado> listarPorTipoEmpleado(Integer idEmpresa, String descTipoEmpleado);
+	Set<EmpleadoResponse> listarEmpleadosPorEmpresa(Integer idEmpresa);
 }

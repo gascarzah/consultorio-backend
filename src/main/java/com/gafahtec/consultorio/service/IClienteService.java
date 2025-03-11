@@ -3,10 +3,13 @@ package com.gafahtec.consultorio.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.gafahtec.consultorio.model.Cliente;
+import com.gafahtec.consultorio.dto.request.ClienteRequest;
+import com.gafahtec.consultorio.dto.response.ClienteResponse;
 
 
-public interface IClienteService extends ICRUD<Cliente,Integer>{
+public interface IClienteService extends ICRUD<ClienteRequest,ClienteResponse, String>{
 
-	Page<Cliente> listarPageable(Pageable pageable);
+	Page<ClienteResponse> listarPageable(Pageable pageable);
+	
+	public ClienteResponse registrarConHistoriaClinica(ClienteRequest request) ;
 }

@@ -1,7 +1,8 @@
 package com.gafahtec.consultorio.dto.request;
 
+import com.gafahtec.consultorio.dto.response.ClienteResponse;
+
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,11 +19,29 @@ import lombok.ToString;
 @ToString
 public class HistoriaClinicaRequest {
 
-    private Integer idHistoriaClinica;
+    private String idHistoriaClinica;
 
     private String ectoscopia;
     private String alergia;
     private String motivo;
     private String antecedentesMedicos;
     private Integer idCliente;
+    
+
+	private String nombres;
+	
+	private String apellidoPaterno;
+	
+	private String apellidoMaterno;
+
+	private String tipoDocumento;
+	
+	private String numeroDocumento;
+
+	private String direccion;
+
+	private String telefono;
+	private String celular;
+	
+	private String email;
 }

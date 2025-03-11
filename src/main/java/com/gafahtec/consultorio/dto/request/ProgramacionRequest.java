@@ -23,4 +23,5 @@ public class ProgramacionRequest {
     private Date fechaFinal;
     private String[] checked;
     private Integer idEmpresa;
+    private String numeroDocumento;
 }

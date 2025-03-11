@@ -1,10 +1,9 @@
 package com.gafahtec.consultorio.controller;
 
 import java.util.List;
+import java.util.Set;
 
-import javax.validation.Valid;
-
-import org.apache.commons.beanutils.BeanUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -21,10 +20,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gafahtec.consultorio.dto.request.HorarioRequest;
+import com.gafahtec.consultorio.dto.response.HorarioResponse;
 import com.gafahtec.consultorio.exception.ResourceNotFoundException;
-import com.gafahtec.consultorio.model.Horario;
+import com.gafahtec.consultorio.model.consultorio.Horario;
 import com.gafahtec.consultorio.service.IHorarioService;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -37,44 +38,43 @@ public class HorarioController {
     private IHorarioService iHorarioService;
 
     @PostMapping
-    public ResponseEntity<Horario> registrar(@Valid @RequestBody HorarioRequest horarioRequest) throws Exception {
-        Horario horario = Horario.builder().build();
-        BeanUtils.copyProperties(horario, horarioRequest);
-        Horario obj = iHorarioService.registrar(horario);
+    public ResponseEntity<HorarioResponse> registrar(@Valid @RequestBody HorarioRequest horarioRequest) throws Exception {
+
+        var obj = iHorarioService.registrar(horarioRequest);
 
         log.info("objeto creado " + obj);
         return new ResponseEntity<>(obj, HttpStatus.CREATED);
     }
 
     @GetMapping("/pageable")
-    public ResponseEntity<Page<Horario>> listarPageable(@PageableDefault(sort = "idHorario") Pageable pageable,
+    public ResponseEntity<Page<HorarioResponse>> listarPageable(@PageableDefault(sort = "idHorario") Pageable pageable,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) throws Exception {
-        Page<Horario> paginas = iHorarioService.listarPageable(pageable);
+        var paginas = iHorarioService.listarPageable(pageable);
         if (paginas.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
-        return new ResponseEntity<Page<Horario>>(paginas, HttpStatus.OK);
+        return new ResponseEntity<>(paginas, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Horario> listarPorId(@PathVariable("id") Integer id) throws Exception {
-        Horario obj = iHorarioService.listarPorId(id);
+    public ResponseEntity<HorarioResponse> listarPorId(@PathVariable("id") Integer id) throws Exception {
+        var obj = iHorarioService.listarPorId(id);
 
         if (obj.getIdHorario() == null) {
             throw new ResourceNotFoundException("Id no encontrado " + id);
         }
 
-        return new ResponseEntity<Horario>(obj, HttpStatus.OK);
+        return new ResponseEntity<>(obj, HttpStatus.OK);
     }
     
     @GetMapping
-    public ResponseEntity<List<Horario>> getHorarios() throws Exception {
-        List<Horario> horarios = iHorarioService.listar();
+    public ResponseEntity<Set<HorarioResponse>> getHorarios() throws Exception {
+        var horarios = iHorarioService.listar();
         if (horarios.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
-        return new ResponseEntity<List<Horario>>(horarios, HttpStatus.OK);
+        return new ResponseEntity<>(horarios, HttpStatus.OK);
     }
     
     @DeleteMapping("/{id}")
@@ -85,14 +85,13 @@ public class HorarioController {
             throw new ResourceNotFoundException("ID NO ENCONTRADO " + id);
         }
         iHorarioService.eliminar(id);
-        return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     
     @PutMapping
-    public ResponseEntity<Horario> modificar(@Valid @RequestBody HorarioRequest horarioRequest) throws Exception {
-        Horario horario = Horario.builder().build();
-        BeanUtils.copyProperties(horario, horarioRequest);
-        Horario obj = iHorarioService.modificar(horario);
+    public ResponseEntity<HorarioResponse> modificar(@Valid @RequestBody HorarioRequest horarioRequest) throws Exception {
+
+        var obj = iHorarioService.modificar(horarioRequest);
 
         log.info("objeto creado " + obj);
         return new ResponseEntity<>(obj, HttpStatus.OK);

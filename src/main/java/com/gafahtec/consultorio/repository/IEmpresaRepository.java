@@ -1,7 +1,7 @@
 package com.gafahtec.consultorio.repository;
 
-import com.gafahtec.consultorio.model.Empresa;
-import com.gafahtec.consultorio.model.Rol;
+import com.gafahtec.consultorio.model.auth.Empresa;
+import com.gafahtec.consultorio.model.auth.Rol;
 
 public interface IEmpresaRepository extends IGenericRepository<Empresa,Integer>{
 	

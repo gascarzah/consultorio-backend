@@ -1,15 +1,12 @@
 package com.gafahtec.consultorio.controller;
 
-import java.util.List;
+import java.util.Set;
 
-import javax.validation.Valid;
-
-import org.apache.commons.beanutils.BeanUtils;
+import com.gafahtec.consultorio.service.IEmpleadoService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,14 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gafahtec.consultorio.dto.request.EmpleadoRequest;
-import com.gafahtec.consultorio.exception.ResourceNotFoundException;
-import com.gafahtec.consultorio.model.Empleado;
-import com.gafahtec.consultorio.model.Empresa;
-import com.gafahtec.consultorio.model.Persona;
-import com.gafahtec.consultorio.model.TipoEmpleado;
-import com.gafahtec.consultorio.service.IEmpleadoService;
-import com.gafahtec.consultorio.service.IPersonaService;
+import com.gafahtec.consultorio.dto.response.EmpleadoResponse;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -37,92 +29,72 @@ import lombok.extern.log4j.Log4j2;
 public class EmpleadoController {
 
     private IEmpleadoService iEmpleadoService;
-    private IPersonaService iPersonaService;
     
     @GetMapping(value = "/medicos/{idRol}")
-    public ResponseEntity<List<Empleado>> listar(@PathVariable("idRol") Integer idRol) throws Exception {
-        List<Empleado> lista = iEmpleadoService.listarPorRol(idRol);
+    public ResponseEntity<Set<EmpleadoResponse>> listar(@PathVariable("idRol") Integer idRol) throws Exception {
+        var lista = iEmpleadoService.listarPorRol(idRol);
         if (lista.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
-        return new ResponseEntity<List<Empleado>>(lista, HttpStatus.OK);
+        return new ResponseEntity<>(lista, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/tipoEmpleado/{idEmpresa}/{descTipoEmpleado}")
-    public ResponseEntity<List<Empleado>> listarPorTipoEmpleado(@PathVariable("idEmpresa") Integer idEmpresa,
-            @PathVariable("descTipoEmpleado") String descTipoEmpleado) throws Exception {
-        List<Empleado> lista = iEmpleadoService.listarPorTipoEmpleado(idEmpresa, descTipoEmpleado);
+    @GetMapping(value = "/empresa/{idEmpresa}")
+    public ResponseEntity<Set<EmpleadoResponse>> listarEmpleadosPorEmpresa(@PathVariable("idEmpresa") Integer idEmpresa) throws Exception {
+        var lista = iEmpleadoService.listarEmpleadosPorEmpresa(idEmpresa);
         if (lista.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
-        return new ResponseEntity<List<Empleado>>(lista, HttpStatus.OK);
+        return new ResponseEntity<>(lista, HttpStatus.OK);
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<Empleado> listarPorId(@PathVariable("id") Integer id) throws Exception {
-        Empleado obj = iEmpleadoService.listarPorId(id);
+    public ResponseEntity<EmpleadoResponse> listarPorId(@PathVariable("id") Integer id) throws Exception {
+//        var obj = iEmpleadoService.listarPorId(id);
 //		
 //		if(obj.getIdEmpleado() == null) {
 //		    throw new ResourceNotFoundException("Id no encontrado " + id);
 //		}
 
-        return new ResponseEntity<Empleado>(obj, HttpStatus.OK);
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Empleado> registrar(@Valid @RequestBody EmpleadoRequest empleadoRequest) throws Exception {
+    public ResponseEntity<EmpleadoResponse> registrar(@Valid @RequestBody EmpleadoRequest empleadoRequest) throws Exception {
         System.out.println(empleadoRequest);
 
-        var savedPersona = iPersonaService.registrar(Persona.builder()
-                .numeroDocumento(empleadoRequest.getNumeroDocumento())
-                .apellidoMaterno(empleadoRequest.getApellidoMaterno())
-                .apellidoPaterno(empleadoRequest.getApellidoPaterno())
-                .nombres(empleadoRequest.getNombres())
-                .direccion(empleadoRequest.getDireccion())
-                .build());
-                
 
-        
-        var empleado = Empleado.builder()
-                .empresa(Empresa.builder().idEmpresa(empleadoRequest.getIdEmpresa()).build())
-                .persona(savedPersona)
-                .tipoEmpleado(TipoEmpleado.builder()
-                        .idTipoEmpleado(empleadoRequest.getIdTipoEmpleado())
-                        .build())
-                .build();
-        System.out.println(empleado);
-        Empleado obj = iEmpleadoService.registrar(empleado);
+        var obj = iEmpleadoService.registrar(empleadoRequest);
         log.info("Empleado creado " + obj);
         return new ResponseEntity<>(obj, HttpStatus.CREATED);
     }
 
     @PutMapping
-    public ResponseEntity<Empleado> modificar(@Valid @RequestBody EmpleadoRequest EmpleadoRequest) throws Exception {
-        Empleado Empleado = new Empleado();
-        BeanUtils.copyProperties(Empleado, EmpleadoRequest);
-        Empleado obj = iEmpleadoService.modificar(Empleado);
+    public ResponseEntity<EmpleadoResponse> modificar(@Valid @RequestBody EmpleadoRequest empleadoRequest) throws Exception {
+
+        var obj = iEmpleadoService.modificar(empleadoRequest);
         log.info("Empleado modificado " + obj);
-        return new ResponseEntity<Empleado>(obj, HttpStatus.OK);
+        return new ResponseEntity<>(obj, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable("id") Integer id) throws Exception {
-        Empleado obj = iEmpleadoService.listarPorId(id);
-
-		if(obj.getIdEmpleado() == null) {
-			throw new ResourceNotFoundException("ID NO ENCONTRADO "+id);
-		}
-
-        iEmpleadoService.eliminar(id);
-        return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
-    }
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Void> eliminar(@PathVariable("id") Integer id) throws Exception {
+//        Empleado obj = iEmpleadoService.listarPorId(id);
+//
+//		if(obj.getIdEmpleado() == null) {
+//			throw new ResourceNotFoundException("ID NO ENCONTRADO "+id);
+//		}
+//
+//        iEmpleadoService.eliminar(id);
+//        return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+//    }
 
     @GetMapping("/pageable")
-    public ResponseEntity<Page<Empleado>> listarPageable(Pageable pageable) throws Exception {
-        Page<Empleado> paginas = iEmpleadoService.listarPageable(pageable);
+    public ResponseEntity<Page<EmpleadoResponse>> listarPageable(Pageable pageable) throws Exception {
+        var paginas = iEmpleadoService.listarPageable(pageable);
         if (paginas.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
-        return new ResponseEntity<Page<Empleado>>(paginas, HttpStatus.OK);
+        return new ResponseEntity<>(paginas, HttpStatus.OK);
     }
 }

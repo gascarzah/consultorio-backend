@@ -4,15 +4,15 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.gafahtec.consultorio.model.Cita;
-import com.gafahtec.consultorio.model.Programacion;
-import com.gafahtec.consultorio.model.ProgramacionDetalle;
+import com.gafahtec.consultorio.model.consultorio.Cita;
+import com.gafahtec.consultorio.model.consultorio.Programacion;
+import com.gafahtec.consultorio.model.consultorio.ProgramacionDetalle;
 import com.gafahtec.consultorio.service.ICitaService;
 import com.gafahtec.consultorio.service.IProgramacionDetalleService;
 import com.gafahtec.consultorio.service.IProgramacionService;
@@ -35,18 +35,18 @@ public class Scheduler {
 
         ZoneId systemTimeZone = ZoneId.systemDefault();
         Date fechaActual = new Date();
-//          System.out.println(" fechaActual " + fechaActual);
+          System.out.println(" fechaActual " + fechaActual);
 
         String strFechaActual = simpleDateFormat.format(fechaActual);
 
-        List<Programacion> listaProgramacion = iProgramacionService.programacionEstado(Constants.ACTIVO);
+        Set<Programacion> listaProgramacion = iProgramacionService.programacionEntityActivo();
 //        fechaActual.before(programacion.getFechaInicial())// pendiente
         for(Programacion programacion : listaProgramacion) {
             if (!(fechaActual.after(programacion.getFechaInicial()) && fechaActual.before(programacion.getFechaFinal()))) {
 //                System.out.println("p " + programacion) ;
-                programacion.setEstado(Constants.INACTIVO);
+                programacion.setActivo(Constants.INACTIVO);
               try {
-                  iProgramacionService.modificar(programacion);
+                  iProgramacionService.modificarEntity(programacion);
               } catch (Exception e) {
                   // TODO Auto-generated catch block
                   e.printStackTrace();
@@ -55,7 +55,7 @@ public class Scheduler {
         }
 
 
-        List<ProgramacionDetalle> listaProgramacionDetalle = iProgramacionDetalleService.programacionDias(Constants.ACTIVO);
+        Set<ProgramacionDetalle> listaProgramacionDetalle = iProgramacionDetalleService.getProgramacionDetalleActivo(Constants.ACTIVO);
 //          System.out.println(" listaProgramacionDetalle " + listaProgramacionDetalle);
 
         listaProgramacionDetalle.forEach(det -> {
@@ -69,10 +69,10 @@ public class Scheduler {
 //                  System.out.println("fechaActual "+fechaActual + " utilDate "+utilDate);
 //                  System.out.println(" utilDate "+utilDate);
 //                  System.out.println(det.getFecha());
-                det.setEstado(Constants.INACTIVO);
+                det.setActivo(Constants.INACTIVO);
                 actualizarCitaDelDia(det.getIdProgramacionDetalle());
                 try {
-                    iProgramacionDetalleService.modificar(det);
+                    iProgramacionDetalleService.modificarEntity(det);
                 } catch (Exception e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -84,17 +84,17 @@ public class Scheduler {
     
     
     public void actualizarCitaDelDia(Integer idProgramacionDetalle) {
-        Integer noAtendidos = 0;
-        List<Cita> citas = iCitaService.listarNoAtendidos(idProgramacionDetalle, noAtendidos);
+        
+        Set<Cita> citas = iCitaService.listarNoAtendidos(idProgramacionDetalle, Constants.DESATENDIDO);
         
         for(Cita cita : citas) {
             if(null == cita.getCliente()) {
-                cita.setAtendido(3); //no programado
+                cita.setEstado(3); //no programado
             }else {
-                cita.setAtendido(2);//no asistio
+                cita.setEstado(2);//no asistio
             }
 //            System.out.println("valor cita "+ cita);
-            iCitaService.modificar(cita);
+            iCitaService.modificarToEntity(cita);
         }
     }
     

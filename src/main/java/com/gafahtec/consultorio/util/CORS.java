@@ -1,15 +1,21 @@
 package com.gafahtec.consultorio.util;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -20,6 +26,7 @@ public class CORS implements Filter {
 	                                                          "https://gascarzah.com",
 	                                                          "http://localhost:3000",
 	                                                          "http://localhost:5173",
+	                                                          "http://localhost:5174",
 	                                                          "http://127.0.0.1:5173",
 	                                                          "http://172.25.208.1:5173",
 	                                                          "http://192.168.1.15:5173"

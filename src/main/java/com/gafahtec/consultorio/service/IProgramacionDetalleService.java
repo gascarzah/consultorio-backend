@@ -1,48 +1,62 @@
 package com.gafahtec.consultorio.service;
 
 import java.text.ParseException;
-import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.gafahtec.consultorio.dto.request.ProgramacionDetalleRequest;
+import com.gafahtec.consultorio.dto.response.ProgramacionDetalleHelperResponse;
 import com.gafahtec.consultorio.dto.response.ProgramacionDetalleResponse;
-import com.gafahtec.consultorio.model.Programacion;
-import com.gafahtec.consultorio.model.ProgramacionDetalle;
+import com.gafahtec.consultorio.model.consultorio.ProgramacionDetalle;
 
-public interface IProgramacionDetalleService extends ICRUD<ProgramacionDetalle, Integer> {
-//    public List<ProgramacionDetalle> generarProgramacionDetalle(Programacion programacion,
-//            ProgramacionRequest programacionRequest);
+import jakarta.validation.Valid;
 
-//    List<ProgramacionDetalle> generarProgramacion(Programacion programacion, ProgramacionRequest programacionRequest)
-//            throws ParseException;
+public interface IProgramacionDetalleService  {
 
-    List<ProgramacionDetalle> generarProgramacionDetalle(Programacion programacion, ProgramacionDetalleRequest programacionRequest)
-            throws ParseException;
+
+	Set<ProgramacionDetalleResponse> registrar(ProgramacionDetalleRequest request) ;
+	
+
+	ProgramacionDetalleResponse modificar(@Valid ProgramacionDetalleRequest programacionDetalleRequest);
+
+
+	void eliminar(Integer id);
+	
+	Page<ProgramacionDetalleResponse> listarPageable(Pageable pageable);
+	
+	Set<ProgramacionDetalleResponse> getProgramacionEmpleado(ProgramacionDetalleRequest programacionDetalleRequest);
+	
+	Boolean existeProgramacionEmpleado(ProgramacionDetalleRequest request);
     
-    List<ProgramacionDetalle> generarDiasProgramados(Integer idMedico) throws ParseException;
+	
+	Set<ProgramacionDetalleResponse> listarDiasProgramados(String numeroDocumento, Integer idEmpresa) throws ParseException;
 
-//    public List<ProgramacionDetalle> getProgramacionConDetalle(Programacion programacion);
+	Set<ProgramacionDetalle> getProgramacionDetalleActivo(Boolean estado);
+	public ProgramacionDetalle modificarEntity(ProgramacionDetalle programacionDetalle);
+    //////////////////////////////////////////////
+	
 
-    public List<ProgramacionDetalle> getProgramacionMedico(Integer idProgramacion, Integer idMedico);
+
+	
+
+	Set<ProgramacionDetalleResponse> verificaProgramacion(Integer idMedico, String fechaInicial, String fechaFinal);
+
+	Set<ProgramacionDetalleResponse> citasPendientes(Integer idMedico, Integer numeroDiaSemana);
+
     
+
+	ProgramacionDetalleHelperResponse listarPorIdProgramacion(Integer idProgramacion);
+
+
+
+   
+
+
+
+
     
-    public List<ProgramacionDetalle> programacionDias(Boolean estado);
 
-    public List<ProgramacionDetalle> verificaProgramacion(Integer idMedico, String fechaInicial, String fechaFinal);
-
-    public List<ProgramacionDetalle> citasPendientes(Integer idMedico, Integer numeroDiaSemana);
-
-    public Page<ProgramacionDetalle> listarPageable(Pageable pageable);
-
-    ProgramacionDetalleResponse listarPorIdProgramacion(Integer idProgramacion);
-
-
-
-    List<ProgramacionDetalle> listarPorProgramacion(Integer idProgramacion);
-
-    Page<ProgramacionDetalle> listarProgramacionEmpleadoPageable(Pageable paging);
-
-  
+   
 }

@@ -19,9 +19,9 @@ import lombok.ToString;
 public class CitaRequest {
 
     private Integer idProgramacionDetalle;
-    private Integer idCliente;
+    private String numeroDocumento;
     private Integer idCita;
     private Integer idHorario;
     private String informe;
-    private Integer atendido;
+    private Boolean atendido;
 }

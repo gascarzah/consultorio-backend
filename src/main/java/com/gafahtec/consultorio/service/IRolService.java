@@ -3,10 +3,11 @@ package com.gafahtec.consultorio.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.gafahtec.consultorio.model.Rol;
+import com.gafahtec.consultorio.dto.request.RolRequest;
+import com.gafahtec.consultorio.dto.response.RolResponse;
 
-public interface IRolService extends ICRUD<Rol, Integer>{
+public interface IRolService extends ICRUD<RolRequest, RolResponse , Integer>{
 
-    Page<Rol> listarPageable(Pageable pageable);
+    Page<RolResponse> listarPageable(Pageable pageable);
 
 }

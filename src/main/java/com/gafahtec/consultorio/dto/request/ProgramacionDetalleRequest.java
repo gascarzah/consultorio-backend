@@ -19,7 +19,8 @@ import lombok.ToString;
 public class ProgramacionDetalleRequest {
     private Integer idProgramacionDetalle;
     private Integer idProgramacion;
-    private Integer idEmpleado;
+    private Integer idEmpresa;
     private Integer estado;
     private String[] checked;
+    private String numeroDocumento;
 }

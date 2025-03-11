@@ -1,46 +1,58 @@
 package com.gafahtec.consultorio.repository;
 
-import java.util.List;
-
+import com.gafahtec.consultorio.model.consultorio.Programacion;
+import com.gafahtec.consultorio.model.consultorio.ProgramacionDetalle;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.gafahtec.consultorio.model.Programacion;
-import com.gafahtec.consultorio.model.ProgramacionDetalle;
+import java.util.Set;
 
 @Repository
 public interface IProgramacionDetalleRepository extends IGenericRepository<ProgramacionDetalle, Integer> {
 
-    @Query("SELECT pp FROM ProgramacionDetalle pp WHERE  pp.empleado.idEmpleado  = :idMedico and pp.estado = :estado and pp.numeroDiaSemana = :numeroDiaSemana")
-    List<ProgramacionDetalle> citasPendientes(@Param("idMedico") Integer idMedico, @Param("estado") Boolean estado,
+    Set<ProgramacionDetalle> findByProgramacion(Programacion programacion);
+    
+  @Query("SELECT pd FROM ProgramacionDetalle pd WHERE pd.programacion.idProgramacion = :idProgramacion and pd.empleado.empresa.idEmpresa  = :idEmpresa and  pd.empleado.numeroDocumento  = :numeroDocumento")
+  Set<ProgramacionDetalle> getProgramacionEmpleado(Integer idProgramacion,
+          Integer idEmpresa, String numeroDocumento);
+
+  @Query("SELECT pd FROM ProgramacionDetalle pd WHERE  pd.empleado.numeroDocumento = :numeroDocumento and pd.empleado.empresa.idEmpresa = :idEmpresa and pd.activo = :activo")
+  Set<ProgramacionDetalle> findByEmpleadoAndEstado(String numeroDocumento, Integer idEmpresa, Boolean activo);
+
+//  @Query("SELECT new com.gafahtec.consultorio.dto.response.ProgramacionDetalleResponse"
+//  		+ "(pd.idProgramacionDetalle, pd.fecha, pd.diaSemana, pd.numeroDiaSemana, pd.estado, pd.empleado, pd.programacion, count(c.idCita ) ) "
+//  		+ "FROM Cita c join cita.programacionDetalle pd group by pd.idProgramacionDetalle, pd.fecha, pd.diaSemana, pd.numeroDiaSemana, pd.empleado, pd.programacion ")
+//	Page<ProgramacionDetalleResponse> listarPageable(Pageable pageable);
+  
+  @Query("Select p from ProgramacionDetalle p  where  p.activo = true " )
+  Page<ProgramacionDetalle> listarProgramacionDetalleActivoPageable(Pageable pageable);
+    //////////////////////////
+	
+	@Query("SELECT pp FROM ProgramacionDetalle pp")
+//    @Query("SELECT pp FROM ProgramacionDetalle pp WHERE  pp.empleado.idEmpleado  = :idMedico and pp.estado = :estado and pp.numeroDiaSemana = :numeroDiaSemana")
+    Set<ProgramacionDetalle> citasPendientes(@Param("idMedico") Integer idMedico, @Param("estado") Boolean estado,
             @Param("numeroDiaSemana") Integer numeroDiaSemana);
 
-    @Query("SELECT pp FROM ProgramacionDetalle pp WHERE  pp.empleado.idEmpleado = :idMedico and pp.estado = :estado")
-    List<ProgramacionDetalle> findByEmpleadoAndPendiente(@Param("idMedico") Integer idMedico,
-            @Param("estado") Integer estado);
 
-//    List<ProgramacionDetalle> findByEmpleado(Empleado empleado);
 
-    @Query("SELECT pp FROM ProgramacionDetalle pp WHERE pp.programacion.idProgramacion = :idProgramacion and pp.empleado.idEmpleado  = :idMedico")
-    List<ProgramacionDetalle> getProgramacionMedico(@Param("idProgramacion") Integer idProgramacion,
-            @Param("idMedico") Integer idMedico);
+    
 
-    List<ProgramacionDetalle> findByEstado(Boolean estado);
 
-    @Query("SELECT pd FROM ProgramacionDetalle pd join pd.empleado emp join pd.programacion prog where  emp.idEmpleado = :idMedico and prog.strFechaInicial = :strFechaInicial and prog.strFechaFinal =:strFechaFinal")
-    List<ProgramacionDetalle> verificaProgramacion(@Param("idMedico") Integer idMedico,
+    Set<ProgramacionDetalle> findByActivo(Boolean activo);
+
+    @Query("SELECT pp FROM ProgramacionDetalle pp")
+//    @Query("SELECT pd FROM ProgramacionDetalle pd join pd.empleado emp join pd.programacion prog where  emp.idEmpleado = :idMedico and prog.strFechaInicial = :strFechaInicial and prog.strFechaFinal =:strFechaFinal")
+    Set<ProgramacionDetalle> verificaProgramacion(@Param("idMedico") Integer idMedico,
             @Param("strFechaInicial") String strFechaInicial, @Param("strFechaFinal") String strFechaFinal);
 
-//    @Query("SELECT pp FROM ProgramacionDetalle pp WHERE pp.idProgramacionDetalle = :idProgramacionDetalle ")
-//    ProgramacionDetalle listarPorIdDetalle(@Param("idProgramacionDetalle")Integer idProgramacionDetalle);
 
-    List<ProgramacionDetalle> findByProgramacion(Programacion programacion);
     
-    @Query("Select p from ProgramacionDetalle p  where  p.estado = false " )
-    Page<ProgramacionDetalle> listarProgramacionEmpleadoPageable(Pageable pageable);
+
+
+
 
     
 }
