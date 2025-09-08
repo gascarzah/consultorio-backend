@@ -13,13 +13,28 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class HistoriaClinicaResponse implements Serializable{
-	private String idHistoriaClinica;
+	private Integer idHistoriaClinica;
 	
 	private String ectoscopia;
 	private String alergia;
 	private String motivo;
 	private String antecedentesMedicos;
 
-	
-	private ClienteResponse cliente;
+
+	private String nombres;
+
+	private String apellidoPaterno;
+
+	private String apellidoMaterno;
+
+	private String tipoDocumento;
+
+	private String numeroDocumento;
+
+	private String direccion;
+
+	private String telefono;
+	private String celular;
+
+	private String email;
 }

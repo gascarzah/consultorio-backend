@@ -2,16 +2,23 @@ package com.gafahtec.consultorio.service.impl;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import com.gafahtec.consultorio.repository.*;
+import com.gafahtec.consultorio.repository.IEmpleadoRepository;
+import com.gafahtec.consultorio.repository.IEmpresaRepository;
+import com.gafahtec.consultorio.repository.IRolRepository;
+import com.gafahtec.consultorio.repository.ITokenRepository;
+import com.gafahtec.consultorio.repository.IUsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +46,7 @@ import lombok.extern.log4j.Log4j2;
 @Transactional
 @AllArgsConstructor
 @Log4j2
-public class UsuarioServiceImpl  implements IUsuarioService {
+public class UsuarioServiceImpl implements IUsuarioService {
 	private final IUsuarioRepository iUsuarioRepository;
 	private final ITokenRepository iTokenRepository;
 	private final PasswordEncoder passwordEncoder;
@@ -48,7 +55,6 @@ public class UsuarioServiceImpl  implements IUsuarioService {
 	private final IEmpresaRepository iEmpresaRepository;
 	private final IEmpleadoRepository iEmpleadoRepository;
 	private final IRolRepository iRolRepository;
-	
 
 	public Usuario register(UsuarioRequest usuarioRequest) {
 
@@ -57,10 +63,11 @@ public class UsuarioServiceImpl  implements IUsuarioService {
 		if (usuarioRegistrado.isEmpty()) {
 			var empresa = iEmpresaRepository
 					.findById(usuarioRequest.getIdEmpresa())
-					.orElseThrow(() -> new EntityNotFoundException("Empresa no encontrada con ID: " + usuarioRequest.getIdEmpresa()));
+					.orElseThrow(() -> new EntityNotFoundException(
+							"Empresa no encontrada con ID: " + usuarioRequest.getIdEmpresa()));
 
 			var empleado = Empleado.builder()
-//					.idEmpleado(usuarioRequest.getIdEmpleado())
+					// .idEmpleado(usuarioRequest.getIdEmpleado())
 					.activo(Constants.ACTIVO)
 					.nombres(usuarioRequest.getNombres())
 					.apellidoPaterno(usuarioRequest.getApellidoPaterno())
@@ -70,17 +77,17 @@ public class UsuarioServiceImpl  implements IUsuarioService {
 					.build();
 
 			var savedEmpleado = iEmpleadoRepository.save(empleado);
-	            
+
 			Set<Rol> hashRoles = new HashSet<Rol>();
-			 hashRoles.add(iRolRepository.findById(usuarioRequest.getIdRol()).get());
+			hashRoles.add(iRolRepository.findById(usuarioRequest.getIdRol()).get());
 
 			var user = Usuario.builder()
-					
+
 					.email(usuarioRequest.getEmail())
 					.password(passwordEncoder.encode("123456"))
 					.empleado(savedEmpleado)
 					.roles(hashRoles).build();
-			
+
 			var savedUser = iUsuarioRepository.save(user);
 			var jwtToken = jwtService.generateToken(user);
 
@@ -88,10 +95,11 @@ public class UsuarioServiceImpl  implements IUsuarioService {
 			saveUserToken(savedUser, jwtToken);
 
 			return savedUser;
-//			return AuthenticationResponse.builder().accessToken(jwtToken).refreshToken(refreshToken).build();
+			// return
+			// AuthenticationResponse.builder().accessToken(jwtToken).refreshToken(refreshToken).build();
 		}
-			log.info("Usuario ya se encuentra regostrado ");
-			return null;
+		log.info("Usuario ya se encuentra regostrado ");
+		return null;
 
 	}
 
@@ -144,70 +152,85 @@ public class UsuarioServiceImpl  implements IUsuarioService {
 			}
 		}
 	}
-	
-	public  Optional<Usuario> findByEmail(String email){
-		
+
+	public Optional<Usuario> findByEmail(String email) {
+
 		return iUsuarioRepository.findByEmail(email);
 	}
 
+	@Override
+	public Page<Usuario> listarPageable(Pageable pageable) {
 
-    @Override
-    public Page<Usuario> listarPageable(Pageable pageable) {
+		return iUsuarioRepository.findAll(pageable);
+	}
 
-        return iUsuarioRepository.findAll(pageable);
-    }
-    @Override
-    public Usuario getUsuarioPorId(Integer id) {
+	@Override
+	public Usuario getUsuarioPorId(Integer id) {
 
-        return iUsuarioRepository.findById(id).get();
-    }
-    
-    
-    @Override
-    public Usuario modificarUsuario(UsuarioRequest usuarioRequest) {
+		return iUsuarioRepository.findById(id).get();
+	}
+
+	@Override
+	public Usuario modificarUsuario(UsuarioRequest usuarioRequest) {
 
 		var empresa = iEmpresaRepository
 				.findById(usuarioRequest.getIdEmpresa())
-				.orElseThrow(() -> new EntityNotFoundException("Empresa no encontrada con ID: " + usuarioRequest.getIdEmpresa()));
+				.orElseThrow(() -> new EntityNotFoundException(
+						"Empresa no encontrada con ID: " + usuarioRequest.getIdEmpresa()));
 
-        Set<Rol> hashRoles = new HashSet<Rol>();
-        hashRoles.add(iRolRepository.findById(usuarioRequest.getIdRol()).get());
+		Set<Rol> hashRoles = new HashSet<>();
+		hashRoles.add(iRolRepository.findById(usuarioRequest.getIdRol()).get());
 
-        var empleado = Empleado.builder()
-        		.idEmpleado(usuarioRequest.getIdEmpleado())
-                .activo(Constants.ACTIVO)
-				.nombres(usuarioRequest.getNombres())
-				.apellidoPaterno(usuarioRequest.getApellidoPaterno())
-				.apellidoMaterno(usuarioRequest.getApellidoMaterno())
-				.numeroDocumento(usuarioRequest.getNumeroDocumento())
-                .empresa(empresa)
-                .build();
+		var empleado = iEmpleadoRepository.findById(usuarioRequest.getIdEmpleado())
+				.orElseThrow(() -> new EntityNotFoundException(
+						"Empleado no encontrado con ID: " + usuarioRequest.getIdEmpleado()));
+
+		empleado.setNombres(usuarioRequest.getNombres());
+		empleado.setApellidoPaterno(usuarioRequest.getApellidoPaterno());
+		empleado.setApellidoMaterno(usuarioRequest.getApellidoMaterno());
+		empleado.setNumeroDocumento(usuarioRequest.getNumeroDocumento());
+		empleado.setEmpresa(empresa);
+		empleado.setActivo(Constants.ACTIVO);
 
 		iEmpleadoRepository.save(empleado);
-       
-        var usuario = iUsuarioRepository.findByEmail(usuarioRequest.getEmail()).get();
-		usuario.setEmpleado(empleado);
-        usuario.setRoles(hashRoles);
-        var userUpdate = iUsuarioRepository.save(usuario);
-        log.info("usuario grabado " + userUpdate);
-        return userUpdate;
 
-    }
+		var usuario = iUsuarioRepository.findById(usuarioRequest.getIdUsuario())
+				.orElseThrow(() -> new UsernameNotFoundException(
+						"Usuario no encontrado con email: " + usuarioRequest.getEmail()));
+		usuario.setEmpleado(empleado);
+		usuario.setRoles(hashRoles);
+		var userUpdate = iUsuarioRepository.save(usuario);
+		log.info("usuario grabado " + userUpdate);
+		return userUpdate;
+
+	}
 
 	@Override
 	public UsuarioResponse registrar(UsuarioRequest request) {
-		// TODO Auto-generated method stub
-		return null;
+		var rol = iRolRepository.findById(request.getIdRol());
+		Set<Rol> hashRoles = new HashSet<>();
+		hashRoles.add(rol.get());
+
+		var empleado = iEmpleadoRepository.findById(request.getIdEmpleado()).get();
+		var usuario = Usuario.builder()
+				.email(request.getEmail())
+				.empleado(empleado)
+				.password(passwordEncoder.encode("123456"))
+				.roles(hashRoles)
+				.build();
+		var newUsuario = iUsuarioRepository.save(usuario);
+
+		return entityToResponse(newUsuario);
 	}
 
 	@Override
 	public UsuarioResponse modificar(UsuarioRequest request) {
-		// TODO Auto-generated method stub
-		return null;
+		var usuarioModificado = modificarUsuario(request);
+		return entityToResponse(usuarioModificado);
 	}
 
 	@Override
-	public Set<UsuarioResponse> listar() {
+	public List<UsuarioResponse> listar() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -220,14 +243,24 @@ public class UsuarioServiceImpl  implements IUsuarioService {
 	@Override
 	public void eliminar(Integer id) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	
 	private UsuarioResponse entityToResponse(Usuario entity) {
 		var response = new UsuarioResponse();
-		
+		BeanUtils.copyProperties(entity, response);
+
+		// Mapear el rol si existe
+		if (entity.getRoles() != null && !entity.getRoles().isEmpty()) {
+			response.setIdRol(entity.getRoles().iterator().next().getIdRol());
+		}
+
 		return response;
+	}
+
+	public UsuarioResponse findUsuarioByEmpleado(Integer id) {
+		var usuario = iUsuarioRepository.findUsuarioByEmpleado(id);
+		return entityToResponse(usuario);
 	}
 
 }

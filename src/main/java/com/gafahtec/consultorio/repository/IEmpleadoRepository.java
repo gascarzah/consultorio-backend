@@ -8,7 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.gafahtec.consultorio.model.auth.Empleado;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface IEmpleadoRepository extends IGenericRepository<Empleado, Integer>{
 	
 	Set<Empleado> findByEmpresa(Empresa empresa);

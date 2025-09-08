@@ -2,11 +2,7 @@ package com.gafahtec.consultorio.dto.request;
 
 import java.util.Date;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Setter
 
@@ -15,7 +11,7 @@ import lombok.ToString;
 @AllArgsConstructor
 
 @NoArgsConstructor
-
+@Builder
 @ToString
 public class ProgramacionRequest {
     private Integer idProgramacion;
@@ -24,4 +20,5 @@ public class ProgramacionRequest {
     private String[] checked;
     private Integer idEmpresa;
     private String numeroDocumento;
+    private Integer numeroSemana;
 }

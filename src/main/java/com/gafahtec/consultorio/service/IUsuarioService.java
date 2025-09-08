@@ -38,4 +38,6 @@ public interface IUsuarioService extends ICRUD<UsuarioRequest, UsuarioResponse ,
 //    Usuario modificarUsuarioEmpleado(UsuarioRequest usuarioRequest);
 
 	 public  Optional<Usuario> findByEmail(String email);
+
+	public UsuarioResponse findUsuarioByEmpleado(Integer id);
 }

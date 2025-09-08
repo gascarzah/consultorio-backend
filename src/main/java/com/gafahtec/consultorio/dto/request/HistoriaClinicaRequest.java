@@ -1,7 +1,5 @@
 package com.gafahtec.consultorio.dto.request;
 
-import com.gafahtec.consultorio.dto.response.ClienteResponse;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +17,7 @@ import lombok.ToString;
 @ToString
 public class HistoriaClinicaRequest {
 
-    private String idHistoriaClinica;
+    private Integer idHistoriaClinica;
 
     private String ectoscopia;
     private String alergia;

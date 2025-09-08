@@ -1,5 +1,6 @@
 package com.gafahtec.consultorio.controller;
 
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.domain.Page;
@@ -24,65 +25,109 @@ import com.gafahtec.consultorio.service.IEmpresaService;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/empresas")
 @AllArgsConstructor
+@Tag(name = "Empresa", description = "Operaciones sobre empresas")
 public class EmpresaController {
 
 	private IEmpresaService iEmpresaService;
-	
+
+	@Operation(summary = "Listar empresas", description = "Obtiene todas las empresas registradas.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Consulta exitosa"),
+			@ApiResponse(responseCode = "204", description = "Sin contenido"),
+			@ApiResponse(responseCode = "500", description = "Error interno del servidor")
+	})
 	@GetMapping
-	public ResponseEntity<Set<EmpresaResponse>> listar() throws Exception{
+	public ResponseEntity<List<EmpresaResponse>> listar() throws Exception {
 		var lista = iEmpresaService.listar();
 		if (lista.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		}
 		return new ResponseEntity<>(lista, HttpStatus.OK);
 	}
-	
+
+	@Operation(summary = "Obtener empresa por ID", description = "Obtiene una empresa por su identificador único.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Consulta exitosa"),
+			@ApiResponse(responseCode = "404", description = "Empresa no encontrada"),
+			@ApiResponse(responseCode = "500", description = "Error interno del servidor")
+	})
 	@GetMapping("/{id}")
-	public ResponseEntity<EmpresaResponse> listarPorId(@PathVariable("id") Integer id) throws Exception{
+	public ResponseEntity<EmpresaResponse> listarPorId(@PathVariable("id") Integer id) throws Exception {
 		var obj = iEmpresaService.listarPorId(id);
-		
-		if(obj.getIdEmpresa() == null) {
-		    throw new ResourceNotFoundException("Id no encontrado " + id);
+
+		if (obj.getIdEmpresa() == null) {
+			throw new ResourceNotFoundException("Id no encontrado " + id);
 		}
-		
+
 		return new ResponseEntity<>(obj, HttpStatus.OK);
 	}
-	
+
+	@Operation(summary = "Registrar empresa", description = "Registra una nueva empresa.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "201", description = "Empresa creada exitosamente"),
+			@ApiResponse(responseCode = "400", description = "Datos inválidos"),
+			@ApiResponse(responseCode = "500", description = "Error interno del servidor")
+	})
 	@PostMapping
-	public ResponseEntity<EmpresaResponse> registrar(@Valid @RequestBody EmpresaRequest empresaRequest) throws Exception{
+	public ResponseEntity<EmpresaResponse> registrar(@Valid @RequestBody EmpresaRequest empresaRequest)
+			throws Exception {
 		var obj = iEmpresaService.registrar(empresaRequest);
-		 return new ResponseEntity<>(obj, HttpStatus.CREATED);
+		return new ResponseEntity<>(obj, HttpStatus.CREATED);
 	}
-	
+
+	@Operation(summary = "Modificar empresa", description = "Modifica una empresa existente.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Empresa modificada exitosamente"),
+			@ApiResponse(responseCode = "400", description = "Datos inválidos"),
+			@ApiResponse(responseCode = "500", description = "Error interno del servidor")
+	})
 	@PutMapping
-	public ResponseEntity<EmpresaResponse> modificar(@Valid @RequestBody EmpresaRequest empresaRequest) throws Exception{
+	public ResponseEntity<EmpresaResponse> modificar(@Valid @RequestBody EmpresaRequest empresaRequest)
+			throws Exception {
 		var obj = iEmpresaService.modificar(empresaRequest);
 		return new ResponseEntity<>(obj, HttpStatus.OK);
 	}
-	
+
+	@Operation(summary = "Eliminar empresa", description = "Elimina una empresa por su identificador único.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "204", description = "Empresa eliminada exitosamente"),
+			@ApiResponse(responseCode = "404", description = "Empresa no encontrada"),
+			@ApiResponse(responseCode = "500", description = "Error interno del servidor")
+	})
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> eliminar(@PathVariable("id") Integer id) throws Exception{
+	public ResponseEntity<Void> eliminar(@PathVariable("id") Integer id) throws Exception {
 		var obj = iEmpresaService.listarPorId(id);
-		
-		if(obj.getIdEmpresa() == null) {
-			throw new ResourceNotFoundException("ID NO ENCONTRADO "+id);
+
+		if (obj.getIdEmpresa() == null) {
+			throw new ResourceNotFoundException("ID NO ENCONTRADO " + id);
 		}
-			
+
 		iEmpresaService.eliminar(id);
 		return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
 	}
-	
-	   @GetMapping("/pageable")
-	    public ResponseEntity<Page<EmpresaResponse>> listarPageable(@PageableDefault(sort = "nombre")Pageable pageable,@RequestParam(defaultValue = "0") int page,
-	            @RequestParam(defaultValue = "5") int size) throws Exception{
-	        var paginas = iEmpresaService.listarPageable(pageable);
-	        if (paginas.isEmpty()) {
-	            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-	        }
-	        return new ResponseEntity<>(paginas, HttpStatus.OK);
-	    }
+
+	@Operation(summary = "Listar empresas paginadas", description = "Obtiene empresas paginadas.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Consulta exitosa"),
+			@ApiResponse(responseCode = "204", description = "Sin contenido"),
+			@ApiResponse(responseCode = "500", description = "Error interno del servidor")
+	})
+	@GetMapping("/pageable")
+	public ResponseEntity<Page<EmpresaResponse>> listarPageable(@PageableDefault(sort = "nombre") Pageable pageable,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "5") int size) throws Exception {
+		var paginas = iEmpresaService.listarPageable(pageable);
+		if (paginas.isEmpty()) {
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		}
+		return new ResponseEntity<>(paginas, HttpStatus.OK);
+	}
 }

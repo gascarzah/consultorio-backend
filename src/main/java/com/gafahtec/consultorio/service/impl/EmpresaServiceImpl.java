@@ -1,6 +1,6 @@
 package com.gafahtec.consultorio.service.impl;
 
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
@@ -73,9 +73,9 @@ public class EmpresaServiceImpl   implements IEmpresaService {
 
 
 	@Override
-	public Set<EmpresaResponse> listar() {
+	public List<EmpresaResponse> listar() {
 		return iEmpresaRepository.findAll()
-		.stream().map(this::entityToResponse).collect(Collectors.toSet());
+		.stream().map(this::entityToResponse).collect(Collectors.toList());
 	}
 
 

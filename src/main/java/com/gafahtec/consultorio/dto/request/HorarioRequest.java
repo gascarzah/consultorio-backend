@@ -20,5 +20,5 @@ public class HorarioRequest {
 
     private Integer idHorario;
     private String descripcion;
-    
+    private Integer idEmpresa;
 }

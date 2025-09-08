@@ -1,6 +1,8 @@
 package com.gafahtec.consultorio.repository;
 
-import java.util.Set;
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,53 +13,49 @@ import org.springframework.stereotype.Repository;
 
 import com.gafahtec.consultorio.model.consultorio.Cita;
 import com.gafahtec.consultorio.model.consultorio.ProgramacionDetalle;
+
 @Repository
-public interface ICitaRepository extends IGenericRepository<Cita,Integer>{
+public interface ICitaRepository extends IGenericRepository<Cita, Integer> {
 
     @Query("Select c from Cita c join c.programacionDetalle pro where pro.idProgramacionDetalle = :idProgramacionDetalle order by c.idCita ")
-    Set<Cita> findByProgramacionDetalleOrderByCita(@Param("idProgramacionDetalle")Integer idProgramacionDetalle);
-    
-    @Query("Select c from Cita c join c.programacionDetalle pd "
-    		+ "where pd.empleado.empresa.idEmpresa  = :idEmpresa"
-    		+ " and pd.empleado.numeroDocumento = :numeroDocumento"
-    		+ "  and pd.numeroDiaSemana = :numeroDiaSemana  order by c.idCita ")
-    Set<Cita> listaCitados(Integer idEmpresa,String numeroDocumento,Integer numeroDiaSemana );
-  
-    @Query("Select c from Cita c join c.cliente cl where  cl.numeroDocumento = :numeroDocumento and c.atendido = true" )
-    Page<Cita>  listaHistorialCitaCliente(String numeroDocumento, Pageable pageable);
-    
-    @Query("Select count(c) from Cita c join c.programacionDetalle pd where pd.idProgramacionDetalle = :idProgramacionDetalle  " )
+    List<Cita> findByProgramacionDetalleOrderByCita(@Param("idProgramacionDetalle") Integer idProgramacionDetalle);
+
+    @Query("""
+                  Select c from Cita c
+                  join ProgramacionDetalle pd on c.programacionDetalle.idProgramacionDetalle = pd.idProgramacionDetalle
+            where pd.empleado.idEmpleado = :idEmpleado
+              and pd.numeroDiaSemana = :numeroDiaSemana
+                   and pd.strFecha = :fecha
+                   order by c.idCita
+                   """)
+    List<Cita> listaCitados(Integer idEmpleado, Integer numeroDiaSemana, String fecha);
+
+    @Query("Select c from Cita c join c.historiaClinica cl where  cl.numeroDocumento = :numeroDocumento and c.atendido = true")
+    Page<Cita> listaHistorialCitaCliente(String numeroDocumento, Pageable pageable);
+
+    @Query("Select count(c) from Cita c join c.programacionDetalle pd where pd.idProgramacionDetalle = :idProgramacionDetalle  ")
     Integer getTotalCitas(Integer idProgramacionDetalle);
-   
-    
-    @Query("Select c from Cita c join c.programacionDetalle pd where  pd.idProgramacionDetalle = :idProgramacionDetalle and c.atendido = :atendido" )
-    Set<Cita> getNoAtendidos(Integer idProgramacionDetalle,Boolean atendido);
+
+    @Query("Select c from Cita c join c.programacionDetalle pd where  pd.idProgramacionDetalle = :idProgramacionDetalle and c.atendido = :atendido")
+    List<Cita> getNoAtendidos(Integer idProgramacionDetalle, Boolean atendido);
     ////////////////////////////
-    
+
     @Modifying
-    @Query(value = "UPDATE Cita set id_cliente = null where id_cita = :idCita and id_horario = :idHorario and id_programacion_detalle = :idProgramacionDetalle ", nativeQuery = true)
-    Integer eliminar(@Param("idCita") Integer idCita, @Param("idHorario") Integer idHorario, @Param("idProgramacionDetalle") Integer idProgramacionDetalle);
-   
+    @Query(value = "UPDATE Cita List id_cliente = null where id_cita = :idCita and id_horario = :idHorario and id_programacion_detalle = :idProgramacionDetalle ", nativeQuery = true)
+    Integer eliminar(@Param("idCita") Integer idCita, @Param("idHorario") Integer idHorario,
+            @Param("idProgramacionDetalle") Integer idProgramacionDetalle);
 
-
-
-    
     @Modifying
-    @Query(value = "UPDATE Cita set atendido = 1 where id_cita = :idCita ", nativeQuery = true)
+    @Query(value = "UPDATE Cita List atendido = 1 where id_cita = :idCita ", nativeQuery = true)
     Integer updateAtencion(@Param("idCita") Integer idCita);
-    
 
     @Query("Select c from Cita c ")
-//    @Query("Select c from Cita c join c.cliente cl where  cl.idCliente = :idCliente" )
-    Set<Cita> listaHistorialCitaCliente(@Param("idCliente")Integer idCliente);
+    // @Query("Select c from Cita c join c.cliente cl where cl.idCliente =
+    // :idCliente" )
+    List<Cita> listaHistorialCitaCliente(@Param("idCliente") Integer idCliente);
 
+    List<Cita> findByAtendido(Boolean atendido);
 
-    
-    Set<Cita> findByAtendido(Integer atendido);
-
-    
-
+    @Query("Select c from Cita c join c.programacionDetalle pd where  pd.fecha = :date ")
+    List<Cita> listarPacientesHoy(LocalDate date);
 }
-
-
-

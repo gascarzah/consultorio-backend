@@ -19,7 +19,7 @@ import lombok.ToString;
 public class CitaRequest {
 
     private Integer idProgramacionDetalle;
-    private String numeroDocumento;
+    private Integer idHistoriaClinica;
     private Integer idCita;
     private Integer idHorario;
     private String informe;

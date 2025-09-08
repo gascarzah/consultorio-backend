@@ -1,5 +1,6 @@
 package com.gafahtec.consultorio.service.impl;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,9 +52,9 @@ public class RolServiceImpl  implements IRolService {
 
 
 	@Override
-	public Set<RolResponse> listar() {
+	public List<RolResponse> listar() {
 		return iRolRepository.findAll()
-        		.stream().map(this::entityToResponse).collect(Collectors.toSet());
+        		.stream().map(this::entityToResponse).collect(Collectors.toList());
 	}
 
 

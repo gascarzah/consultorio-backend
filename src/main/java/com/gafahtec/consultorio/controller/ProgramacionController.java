@@ -28,6 +28,10 @@ import com.gafahtec.consultorio.service.IProgramacionService;
 import com.gafahtec.consultorio.util.Constants;
 import com.gafahtec.consultorio.util.Utils;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -36,14 +40,19 @@ import lombok.extern.log4j.Log4j2;
 @RequestMapping("/programaciones")
 @AllArgsConstructor
 @Log4j2
+@Tag(name = "Programacion", description = "Operaciones sobre programaciones")
 public class ProgramacionController {
 
     private IProgramacionService iProgramacionService;
 
-
-
+    @Operation(summary = "Listar programaciones", description = "Obtiene todas las programaciones registradas.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consulta exitosa"),
+            @ApiResponse(responseCode = "204", description = "Sin contenido"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @GetMapping
-    public ResponseEntity<Set<ProgramacionResponse>> listar() throws Exception {
+    public ResponseEntity<List<ProgramacionResponse>> listar() throws Exception {
         var lista = iProgramacionService.listar();
         if (lista.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -51,6 +60,12 @@ public class ProgramacionController {
         return new ResponseEntity<>(lista, HttpStatus.OK);
     }
 
+    @Operation(summary = "Obtener programación por ID", description = "Obtiene una programación por su identificador único.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consulta exitosa"),
+            @ApiResponse(responseCode = "404", description = "Programación no encontrada"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<ProgramacionResponse> listarPorId(@PathVariable("id") Integer id) throws Exception {
         var obj = iProgramacionService.listarPorId(id);
@@ -62,34 +77,55 @@ public class ProgramacionController {
         return new ResponseEntity<>(obj, HttpStatus.OK);
     }
 
+    @Operation(summary = "Obtener programación activa", description = "Obtiene la programación activa.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consulta exitosa"),
+            @ApiResponse(responseCode = "404", description = "Programación activa no encontrada"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @GetMapping("/activo")
     public ResponseEntity<ProgramacionResponse> programacionActivo() throws Exception {
-        var list = iProgramacionService.programacionActivo().stream().findFirst().orElseThrow(() ->  new ResourceNotFoundException("programacion activa no encontrado "));
-        
+        var list = iProgramacionService.programacionActivo().stream().findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("programacion activa no encontrado "));
 
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
-    
+
+    @Operation(summary = "Registrar programación", description = "Registra una nueva programación.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Programación creada exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PostMapping
     public ResponseEntity<ProgramacionResponse> registrar(@Valid @RequestBody ProgramacionRequest programacionRequest)
-            throws Exception {
+            throws RuntimeException {
 
-
-        
         var obj = iProgramacionService.registrar(programacionRequest);
 
         return new ResponseEntity<>(obj, HttpStatus.CREATED);
 
     }
 
-
-
+    @Operation(summary = "Modificar programación", description = "Modifica una programación existente.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Programación modificada exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PutMapping
-    public ResponseEntity<ProgramacionResponse> modificar(@Valid @RequestBody ProgramacionRequest programacionRequest) throws Exception {
+    public ResponseEntity<ProgramacionResponse> modificar(@Valid @RequestBody ProgramacionRequest programacionRequest)
+            throws Exception {
         var obj = iProgramacionService.modificar(programacionRequest);
         return new ResponseEntity<>(obj, HttpStatus.OK);
     }
 
+    @Operation(summary = "Eliminar programación", description = "Elimina una programación por su identificador único.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Programación eliminada exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Programación no encontrada"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable("id") Integer id) throws Exception {
         var obj = iProgramacionService.listarPorId(id);
@@ -102,15 +138,20 @@ public class ProgramacionController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @Operation(summary = "Listar programaciones paginadas", description = "Obtiene programaciones paginadas para una empresa.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consulta exitosa"),
+            @ApiResponse(responseCode = "204", description = "Sin contenido"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @GetMapping("/{idEmpresa}/pageable")
     public ResponseEntity<Page<ProgramacionResponse>> listarPageable(
             @PathVariable("idEmpresa") Integer idEmpresa,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) throws Exception {
-        
+
         var paging = PageRequest.of(page, size, Sort.by("idProgramacion").descending());
-        var paginas = iProgramacionService.listarProgramacionPageable(idEmpresa,paging);
-        
+        var paginas = iProgramacionService.listarProgramacionPageable(idEmpresa, paging);
 
         if (paginas.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,11 +14,18 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.gafahtec.consultorio.model.Feriado;
+import com.gafahtec.consultorio.model.auth.Empresa;
+import com.gafahtec.consultorio.model.consultorio.DiasPorEmpleado;
+import com.gafahtec.consultorio.repository.*;
+import com.gafahtec.consultorio.service.IFeriadoService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.gafahtec.consultorio.dto.request.ProgramacionDetalleRequest;
@@ -30,10 +38,6 @@ import com.gafahtec.consultorio.dto.response.ProgramacionResponse;
 import com.gafahtec.consultorio.model.auth.Empleado;
 import com.gafahtec.consultorio.model.consultorio.Programacion;
 import com.gafahtec.consultorio.model.consultorio.ProgramacionDetalle;
-import com.gafahtec.consultorio.repository.ICitaRepository;
-import com.gafahtec.consultorio.repository.IEmpleadoRepository;
-import com.gafahtec.consultorio.repository.IProgramacionDetalleRepository;
-import com.gafahtec.consultorio.repository.IProgramacionRepository;
 import com.gafahtec.consultorio.service.IProgramacionDetalleService;
 import com.gafahtec.consultorio.util.Constants;
 
@@ -51,8 +55,12 @@ public class ProgramacionDetalleServiceImpl implements IProgramacionDetalleServi
 	private IProgramacionRepository iProgramacionRepository;
 	private IEmpleadoRepository iEmpleadoRepository;
 	private ICitaRepository iCitaRepository;
+	private IFeriadoRepository iFeriadoRepository;
+	private IDiasPorEmpleadoRepository iDiasPorEmpleadoRepository;
+
+
 	@Override
-	public Set<ProgramacionDetalleResponse> registrar(ProgramacionDetalleRequest request) {
+	public List<ProgramacionDetalleResponse> registrar(ProgramacionDetalleRequest request) {
 		var programacion = iProgramacionRepository.findById(request.getIdProgramacion()).orElseThrow(null);
 
 		LocalDate startLocalDate = programacion.getFechaInicial().toInstant().atZone(ZoneId.systemDefault())
@@ -63,7 +71,8 @@ public class ProgramacionDetalleServiceImpl implements IProgramacionDetalleServi
 
 		var programacionDetalleList = new HashSet<ProgramacionDetalle>();
 
-		var empleado = iEmpleadoRepository.findById(request.getIdEmpresa()).get();
+		var empleado = iEmpleadoRepository.findById(request.getIdEmpleado())
+				.orElseThrow(() -> new EntityNotFoundException("Empleado no encontrado"));
 
 		for (String dia : request.getChecked()) {
 			if (StringUtils.hasText(dia)) {
@@ -81,7 +90,7 @@ public class ProgramacionDetalleServiceImpl implements IProgramacionDetalleServi
 
 		}
 
-		return programacionDetalleList.stream().map(this::entityToResponse).collect(Collectors.toSet());
+		return programacionDetalleList.stream().map(this::entityToResponse).collect(Collectors.toList());
 
 	}
 
@@ -171,61 +180,56 @@ public class ProgramacionDetalleServiceImpl implements IProgramacionDetalleServi
 		iProgramacionDetalleRepository.deleteById(id);
 	}
 
-	private Set<ProgramacionDetalle> listarPorProgramacion(Integer idProgramacion) {
+	private List<ProgramacionDetalle> listarPorProgramacion(Integer idProgramacion) {
 
 		return iProgramacionDetalleRepository
 				.findByProgramacion(Programacion.builder().idProgramacion(idProgramacion).build());
 	}
-	
-	public Set<ProgramacionDetalleResponse> getProgramacionEmpleado(ProgramacionDetalleRequest request) {
-		return iProgramacionDetalleRepository.getProgramacionEmpleado(request.getIdProgramacion(), request.getIdEmpresa(), request.getNumeroDocumento()).stream()
-				.map(this::entityToResponse).collect(Collectors.toSet());
-	
+
+	public List<ProgramacionDetalleResponse> getProgramacionEmpleado(ProgramacionDetalleRequest request) {
+		return iProgramacionDetalleRepository.getProgramacionEmpleado(request.getIdProgramacion(), request.getIdEmpresa(), request.getIdEmpleado()).stream()
+				.map(this::entityToResponse).collect(Collectors.toList());
+
 	}
-	
+
 	public Boolean existeProgramacionEmpleado(ProgramacionDetalleRequest request) {
 
 		return getProgramacionEmpleado( request).isEmpty();
 	}
-	
+
 	public ProgramacionDetalle modificarEntity(ProgramacionDetalle programacionDetalle) {
 		return iProgramacionDetalleRepository.save(programacionDetalle);
 	}
 	//////////////////
 
 	@Override
-	public Set<ProgramacionDetalleResponse> listarDiasProgramados(String numeroDocumento, Integer idEmpresa) throws ParseException {
+	public List<ProgramacionDetalleResponse> listarDiasProgramados(String numeroDocumento, Integer idEmpresa) throws ParseException {
 
 		return iProgramacionDetalleRepository.findByEmpleadoAndEstado(numeroDocumento,idEmpresa, true).stream()
-				.map(this::entityToResponse).collect(Collectors.toSet());
+				.map(this::entityToResponse).collect(Collectors.toList());
 	}
 
-
-
-	
-
-	
 	@Override
-	public Set<ProgramacionDetalle> getProgramacionDetalleActivo(Boolean activo) {
+	public List<ProgramacionDetalle> getProgramacionDetalleActivo(Boolean activo) {
 
 		return iProgramacionDetalleRepository.findByActivo(activo);
 	}
-	
+
 
 
 	@Override
-	public Set<ProgramacionDetalleResponse> verificaProgramacion(Integer idMedico, String fechaInicial,
+	public List<ProgramacionDetalleResponse> verificaProgramacion(Integer idMedico, String fechaInicial,
 			String fechaFinal) {
 		return iProgramacionDetalleRepository.verificaProgramacion(idMedico, fechaInicial, fechaFinal).stream()
-				.map(this::entityToResponse).collect(Collectors.toSet());
+				.map(this::entityToResponse).collect(Collectors.toList());
 
 	}
 
 	@Override
-	public Set<ProgramacionDetalleResponse> citasPendientes(Integer idMedico, Integer numeroDiaSemana) {
+	public List<ProgramacionDetalleResponse> citasPendientes(Integer idMedico, Integer numeroDiaSemana) {
 
 		return iProgramacionDetalleRepository.citasPendientes(idMedico, Constants.ACTIVO, numeroDiaSemana).stream()
-				.map(this::entityToResponse).collect(Collectors.toSet());
+				.map(this::entityToResponse).collect(Collectors.toList());
 	}
 
 
@@ -270,5 +274,136 @@ public class ProgramacionDetalleServiceImpl implements IProgramacionDetalleServi
 		response.setRegistrados(total);
 		return response;
 	}
-	
+
+	public Set<ProgramacionDetalleResponse> registrarAutomaticamente(ProgramacionDetalleRequest request) {
+		//obtenerEmpleados
+		Set<Empleado> listaEmpleado = iEmpleadoRepository.findByEmpresa(Empresa.builder().idEmpresa(request.getIdEmpresa()).build());
+		//obtener solo 3 meses
+//		List<Programacion> programacionesActiva = iProgramacionRepository.findByRango();
+
+		//lista de feriados
+
+
+		var programacion = iProgramacionRepository.findById(request.getIdProgramacion()).orElseThrow(null);
+
+		LocalDate startLocalDate = programacion.getFechaInicial().toInstant().atZone(ZoneId.systemDefault())
+				.toLocalDate();
+		System.out.println("startLocalDate " + startLocalDate);
+		LocalDate endLocalDate = programacion.getFechaFinal().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		System.out.println("endLocalDate " + endLocalDate);
+
+		var programacionDetalleList = new HashSet<ProgramacionDetalle>();
+
+		var empleado = iEmpleadoRepository.findById(request.getIdEmpleado())
+				.orElseThrow(() -> new EntityNotFoundException("Empleado no encontrado"));
+
+		for (String dia : request.getChecked()) {
+			if (StringUtils.hasText(dia)) {
+				LocalDate diaProgramado = startLocalDate.plusDays(Integer.parseInt(dia));
+				DayOfWeek dayOfWeek = diaProgramado.getDayOfWeek();
+
+				var programacionDetalle = ProgramacionDetalle.builder().programacion(programacion).fecha(diaProgramado)
+						.diaSemana(dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault()))
+						.numeroDiaSemana(dayOfWeek.getValue()).empleado(empleado).activo(Constants.ACTIVO).build();
+				var programacionDetalleSaved = iProgramacionDetalleRepository.save(programacionDetalle);
+
+				log.info("Resultado", programacionDetalleSaved);
+				programacionDetalleList.add(programacionDetalleSaved);
+			}
+
+		}
+
+		return programacionDetalleList.stream().map(this::entityToResponse).collect(Collectors.toSet());
+
+	}
+
+	public void generarProgramacionAutomaticaCada3Meses() {
+		log.info("Iniciando verificación de programación para tercer mes...");
+		List<Feriado> feriados = iFeriadoRepository.findAll();
+		List<LocalDate> fechasFeriadas = feriados.stream()
+				.map(Feriado::getFecha)
+				.collect(Collectors.toList());
+		LocalDate hoy = LocalDate.now();
+		LocalDate fechaLimite = hoy.plusMonths(2);
+		List<Programacion> programacionesActivas = iProgramacionRepository.findByActivo(true);
+		var empleadosPorEmpresa =iDiasPorEmpleadoRepository.findByEmpresa(2);
+	log.info("empleadosPorEmpresa ",empleadosPorEmpresa);
+		for (Programacion prog : programacionesActivas) {
+			LocalDate fechaInicio = prog.getFechaInicial()
+					.toInstant()
+					.atZone(ZoneId.systemDefault())
+					.toLocalDate();
+
+			LocalDate fechaFin = prog.getFechaFinal()
+					.toInstant()
+					.atZone(ZoneId.systemDefault())
+					.toLocalDate();
+
+
+			while (!fechaInicio.isAfter(fechaFin)) {
+
+				if (fechaInicio.isAfter(fechaLimite)) {
+					break;
+				}
+
+
+				DayOfWeek dia = fechaInicio.getDayOfWeek();
+				int numeroDia = dia.getValue();
+				boolean esFeriado = fechasFeriadas.contains(fechaInicio);
+
+
+				if (dia != DayOfWeek.SUNDAY && !esFeriado) {
+//					System.out.println("Programar día: " + fechaInicio + " - " + dia);
+					for (DiasPorEmpleado dpe : empleadosPorEmpresa) {
+						Set<Integer> diasHabilitados = dpe.getDias();
+						if (diasHabilitados != null && diasHabilitados.contains(numeroDia)) {
+
+							Integer idProgramacion = prog.getIdProgramacion();
+							Integer idEmpleado = dpe.getEmpleado().getIdEmpleado();
+
+							var programacionDetalle =iProgramacionDetalleRepository.existeProgramacionDetalle(idProgramacion,idEmpleado, numeroDia );
+//							log.info("Buscando ProgramacionDetalle con: idProg={}, idEmp={}, dia={}",
+//									idProgramacion, idEmpleado, numeroDia);
+
+
+
+							log.info("programacionDetalle vacio? "+ObjectUtils.isEmpty(programacionDetalle));
+							if(ObjectUtils.isEmpty(programacionDetalle)){
+								DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+								String strFEcha = fechaInicio.format(formatter);
+								DayOfWeek dayOfWeek = fechaInicio.getDayOfWeek();
+								ProgramacionDetalle programacionDetalle1 =
+										ProgramacionDetalle.builder()
+												.programacion(prog)
+												.empleado(Empleado.builder().idEmpleado(idEmpleado).build())
+												.numeroDiaSemana(numeroDia)
+												.fecha(fechaInicio)
+												.strFecha(strFEcha)
+												.activo(true)
+												.diaSemana(dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault()))
+												.build();
+
+
+								log.info("Programar día: " + programacionDetalle1);
+								iProgramacionDetalleRepository.save(programacionDetalle1);
+
+							}else{
+								log.info("ya existe programacionDetalle "+programacionDetalle);
+							}
+
+
+
+						}
+					}
+				}
+
+				// avanzar al siguiente día
+				fechaInicio = fechaInicio.plusDays(1);
+			}
+
+		}
+
+		log.info("Verificación completada.");
+	}
 }

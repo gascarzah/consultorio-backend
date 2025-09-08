@@ -1,6 +1,6 @@
 package com.gafahtec.consultorio.service.impl;
 
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
@@ -60,9 +60,9 @@ public class MenuServiceImpl   implements IMenuService {
 
 
 	@Override
-	public Set<MenuResponse> listar() {
-		// TODO Auto-generated method stub
-		return iMenuRepository.findAll().stream().map(this::entityToResponse).collect(Collectors.toSet());
+	public List<MenuResponse> listar() {
+
+		return iMenuRepository.findAll().stream().map(this::entityToResponse).collect(Collectors.toList());
 	}
 
 

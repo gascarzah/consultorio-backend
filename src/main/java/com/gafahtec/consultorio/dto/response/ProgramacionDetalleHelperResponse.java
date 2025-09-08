@@ -24,7 +24,7 @@ public class ProgramacionDetalleHelperResponse implements Serializable {
 
     private Empleado empleado;
     
-    private Set<ProgramacionDetalle> programacionDetalles;
+    private List<ProgramacionDetalle> programacionDetalles;
     
     private  List< Boolean> listaDias;
     

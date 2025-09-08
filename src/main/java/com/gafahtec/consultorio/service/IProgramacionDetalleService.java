@@ -1,8 +1,10 @@
 package com.gafahtec.consultorio.service;
 
 import java.text.ParseException;
-import java.util.Set;
+import java.util.List;
+import java.util.List;
 
+import com.gafahtec.consultorio.model.consultorio.Programacion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -16,7 +18,7 @@ import jakarta.validation.Valid;
 public interface IProgramacionDetalleService  {
 
 
-	Set<ProgramacionDetalleResponse> registrar(ProgramacionDetalleRequest request) ;
+	List<ProgramacionDetalleResponse> registrar(ProgramacionDetalleRequest request) ;
 	
 
 	ProgramacionDetalleResponse modificar(@Valid ProgramacionDetalleRequest programacionDetalleRequest);
@@ -26,14 +28,14 @@ public interface IProgramacionDetalleService  {
 	
 	Page<ProgramacionDetalleResponse> listarPageable(Pageable pageable);
 	
-	Set<ProgramacionDetalleResponse> getProgramacionEmpleado(ProgramacionDetalleRequest programacionDetalleRequest);
+	List<ProgramacionDetalleResponse> getProgramacionEmpleado(ProgramacionDetalleRequest programacionDetalleRequest);
 	
 	Boolean existeProgramacionEmpleado(ProgramacionDetalleRequest request);
-    
-	
-	Set<ProgramacionDetalleResponse> listarDiasProgramados(String numeroDocumento, Integer idEmpresa) throws ParseException;
 
-	Set<ProgramacionDetalle> getProgramacionDetalleActivo(Boolean estado);
+
+	List<ProgramacionDetalleResponse> listarDiasProgramados(String numeroDocumento, Integer idEmpresa) throws ParseException;
+
+	List<ProgramacionDetalle> getProgramacionDetalleActivo(Boolean estado);
 	public ProgramacionDetalle modificarEntity(ProgramacionDetalle programacionDetalle);
     //////////////////////////////////////////////
 	
@@ -41,22 +43,22 @@ public interface IProgramacionDetalleService  {
 
 	
 
-	Set<ProgramacionDetalleResponse> verificaProgramacion(Integer idMedico, String fechaInicial, String fechaFinal);
+	List<ProgramacionDetalleResponse> verificaProgramacion(Integer idMedico, String fechaInicial, String fechaFinal);
 
-	Set<ProgramacionDetalleResponse> citasPendientes(Integer idMedico, Integer numeroDiaSemana);
+	List<ProgramacionDetalleResponse> citasPendientes(Integer idMedico, Integer numeroDiaSemana);
 
     
 
 	ProgramacionDetalleHelperResponse listarPorIdProgramacion(Integer idProgramacion);
 
 
-
-   
-
+	void generarProgramacionAutomaticaCada3Meses();
 
 
 
-    
 
-   
+
+
+
+
 }

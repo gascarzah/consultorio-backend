@@ -1,8 +1,11 @@
 package com.gafahtec.consultorio.service;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.List;
 
+import com.gafahtec.consultorio.dto.response.CitadosResponse;
+import com.gafahtec.consultorio.dto.response.DoctorDisponibleResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -18,22 +21,27 @@ public interface ICitaService extends ICRUD<CitaRequest, CitaResponse,Integer>{
 
     void registrarHorarios(List<ProgramacionDetalle> list);
 
-    Set<CitaResponse> listarCitas(Integer idProgramacionDetalle);
+    List<CitaResponse> listarCitas(Integer idProgramacionDetalle);
 
     Integer eliminar(Integer idCita, Integer idHorario, Integer idProgramacionDetalle);
     
     Integer updateAtencion( Integer idCita);
 
-    Set<CitaResponse> listaCitados(Integer idEmpresa,String numeroDocumento, Integer numeroDiaSemana);
+    List<CitaResponse> listaCitados(Integer idEmpleado, Integer numeroDiaSemana);
     
     Page<CitaResponse> listaHistorialCitaCliente(String numeroDocumento, Pageable paging);
     
     
-//    Set<CitaResponse> listaHistorialCitaCliente(Integer idCliente);
+//    List<CitaResponse> listaHistorialCitaCliente(Integer idCliente);
 
-    Set<Cita> listarNoAtendidos(Integer idProgramacionDetalle, Boolean noAtendidos);
+    List<Cita> listarNoAtendidos(Integer idProgramacionDetalle, Boolean noAtendidos);
     
      Cita modificarToEntity(Cita request);
 
-   
+
+    List<Cita>  listarPorFecha(String fecha);
+
+
+    List<DoctorDisponibleResponse> listarCitados(String fecha);
+
 }

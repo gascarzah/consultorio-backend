@@ -1,8 +1,11 @@
 package com.gafahtec.consultorio.service.impl;
 
-import java.util.Set;
+import java.util.List;
+import java.util.List;
 import java.util.stream.Collectors;
 
+import com.gafahtec.consultorio.repository.ICitaRepository;
+import com.gafahtec.consultorio.repository.IProgramacionDetalleRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +29,7 @@ public class HorarioServiceImpl   implements IHorarioService {
 
 	
 	private IHorarioRepository iHorarioRepository;
-	
+	private ICitaRepository iCitaRepository;
 	
 
     @Override
@@ -35,6 +38,14 @@ public class HorarioServiceImpl   implements IHorarioService {
         		.map(this::entityToResponse);
     }
 
+
+
+	@Override
+	public List<HorarioResponse> obtenerHorariosDisponibles(Integer idProgramacionDetalle, Integer idEmpresa) {
+		var horarios = iHorarioRepository.obtenerHorariosDisponibles(idProgramacionDetalle,idEmpresa);
+		log.info("horarios =====> "+horarios);
+        return horarios.stream().map(this::entityToResponse).toList();
+	}
 
 
 	@Override
@@ -62,10 +73,10 @@ public class HorarioServiceImpl   implements IHorarioService {
 
 
 	@Override
-	public Set<HorarioResponse> listar() {
+	public List<HorarioResponse> listar() {
 		
 		return iHorarioRepository.findAll().stream()
-				.map(this::entityToResponse).collect(Collectors.toSet());
+				.map(this::entityToResponse).collect(Collectors.toList());
 	}
 
 

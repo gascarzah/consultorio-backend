@@ -20,7 +20,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @ToString(exclude = {"citas"})
-@EqualsAndHashCode(exclude = {"citas"})
+@EqualsAndHashCode(exclude = {"citas", "empleado"})
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class ProgramacionDetalle {
@@ -33,6 +33,8 @@ public class ProgramacionDetalle {
     private String diaSemana;
     private Integer numeroDiaSemana;
     private Boolean activo;
+
+    private String strFecha;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Empleado empleado;

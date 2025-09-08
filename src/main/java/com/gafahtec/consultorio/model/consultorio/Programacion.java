@@ -34,7 +34,8 @@ public class Programacion {
 	private String strFechaFinal;
 	private String rango;
 	private Boolean activo;
-
+	private Integer idEmpresa;
+	private Integer numeroSemana;
 	@JsonIgnore
 	@Builder.Default
 	@OneToMany(mappedBy = "programacion", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY) // Cambié a LAZY

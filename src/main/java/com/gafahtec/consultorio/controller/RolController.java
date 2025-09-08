@@ -26,65 +26,107 @@ import com.gafahtec.consultorio.service.IRolService;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/roles")
 @AllArgsConstructor
+@Tag(name = "Rol", description = "Operaciones sobre roles")
 public class RolController {
 
 	private IRolService iRolService;
-	
+
+	@Operation(summary = "Listar roles", description = "Obtiene todos los roles registrados.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Consulta exitosa"),
+			@ApiResponse(responseCode = "204", description = "Sin contenido"),
+			@ApiResponse(responseCode = "500", description = "Error interno del servidor")
+	})
 	@GetMapping
-	public ResponseEntity<Set<RolResponse>> listar() throws Exception{
+	public ResponseEntity<List<RolResponse>> listar() throws Exception {
 		var lista = iRolService.listar();
 		if (lista.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		}
 		return new ResponseEntity<>(lista, HttpStatus.OK);
 	}
-	
+
+	@Operation(summary = "Obtener rol por ID", description = "Obtiene un rol por su identificador único.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Consulta exitosa"),
+			@ApiResponse(responseCode = "404", description = "Rol no encontrado"),
+			@ApiResponse(responseCode = "500", description = "Error interno del servidor")
+	})
 	@GetMapping("/{id}")
-	public ResponseEntity<RolResponse> listarPorId(@PathVariable("id") Integer id) throws Exception{
+	public ResponseEntity<RolResponse> listarPorId(@PathVariable("id") Integer id) throws Exception {
 		var obj = iRolService.listarPorId(id);
-		
-		if(obj.getIdRol() == null) {
-		    throw new ResourceNotFoundException("Id no encontrado " + id);
+
+		if (obj.getIdRol() == null) {
+			throw new ResourceNotFoundException("Id no encontrado " + id);
 		}
-		
+
 		return new ResponseEntity<>(obj, HttpStatus.OK);
 	}
-	
+
+	@Operation(summary = "Registrar rol", description = "Registra un nuevo rol.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "201", description = "Rol creado exitosamente"),
+			@ApiResponse(responseCode = "400", description = "Datos inválidos"),
+			@ApiResponse(responseCode = "500", description = "Error interno del servidor")
+	})
 	@PostMapping
-	public ResponseEntity<RolResponse> registrar(@Valid @RequestBody RolRequest p) throws Exception{
+	public ResponseEntity<RolResponse> registrar(@Valid @RequestBody RolRequest p) throws Exception {
 		var obj = iRolService.registrar(p);
-		 return new ResponseEntity<>(obj, HttpStatus.CREATED);
+		return new ResponseEntity<>(obj, HttpStatus.CREATED);
 	}
-	
+
+	@Operation(summary = "Modificar rol", description = "Modifica un rol existente.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Rol modificado exitosamente"),
+			@ApiResponse(responseCode = "400", description = "Datos inválidos"),
+			@ApiResponse(responseCode = "500", description = "Error interno del servidor")
+	})
 	@PutMapping
-	public ResponseEntity<RolResponse> modificar(@Valid @RequestBody RolRequest p) throws Exception{
+	public ResponseEntity<RolResponse> modificar(@Valid @RequestBody RolRequest p) throws Exception {
 		var obj = iRolService.modificar(p);
 		return new ResponseEntity<>(obj, HttpStatus.OK);
 	}
-	
+
+	@Operation(summary = "Eliminar rol", description = "Elimina un rol por su identificador único.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "204", description = "Rol eliminado exitosamente"),
+			@ApiResponse(responseCode = "404", description = "Rol no encontrado"),
+			@ApiResponse(responseCode = "500", description = "Error interno del servidor")
+	})
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> eliminar(@PathVariable("id") Integer id) throws Exception{
+	public ResponseEntity<Void> eliminar(@PathVariable("id") Integer id) throws Exception {
 		var obj = iRolService.listarPorId(id);
-		
-		if(obj.getIdRol() == null) {
-			throw new ResourceNotFoundException("ID NO ENCONTRADO "+id);
+
+		if (obj.getIdRol() == null) {
+			throw new ResourceNotFoundException("ID NO ENCONTRADO " + id);
 		}
-			
+
 		iRolService.eliminar(id);
 		return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
 	}
-	
-	  @GetMapping("/pageable")
-      public ResponseEntity<Page<RolResponse>> listarPageable(@PageableDefault(sort = "nombre")Pageable pageable,@RequestParam(defaultValue = "0") int page,
-              @RequestParam(defaultValue = "5") int size) throws Exception{
-          var paginas = iRolService.listarPageable(pageable);
-          if (paginas.isEmpty()) {
-              return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-          }
-          return new ResponseEntity<>(paginas, HttpStatus.OK);
-      }
+
+	@Operation(summary = "Listar roles paginados", description = "Obtiene roles paginados.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Consulta exitosa"),
+			@ApiResponse(responseCode = "204", description = "Sin contenido"),
+			@ApiResponse(responseCode = "500", description = "Error interno del servidor")
+	})
+	@GetMapping("/pageable")
+	public ResponseEntity<Page<RolResponse>> listarPageable(@PageableDefault(sort = "nombre") Pageable pageable,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "5") int size) throws Exception {
+		var paginas = iRolService.listarPageable(pageable);
+		if (paginas.isEmpty()) {
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		}
+		return new ResponseEntity<>(paginas, HttpStatus.OK);
+	}
 }

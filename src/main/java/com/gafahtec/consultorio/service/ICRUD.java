@@ -1,5 +1,6 @@
 package com.gafahtec.consultorio.service;
 
+import java.util.List;
 import java.util.Set;
 
 public interface ICRUD<RQ, RS, ID> {
@@ -8,7 +9,7 @@ public interface ICRUD<RQ, RS, ID> {
 
 	RS modificar(RQ request);
 
-	Set<RS> listar();
+	List<RS> listar();
 
 	RS listarPorId(ID id);
 

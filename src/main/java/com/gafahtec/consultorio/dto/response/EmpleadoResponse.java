@@ -13,6 +13,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class EmpleadoResponse implements Serializable{
+    private Integer idEmpleado;
 	private String numeroDocumento;
     private String nombres;
     private String apellidoPaterno;
@@ -27,4 +28,5 @@ public class EmpleadoResponse implements Serializable{
 	
 
     private Boolean activo;
+    private Integer idRol;
 }

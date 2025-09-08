@@ -48,7 +48,7 @@ public class Usuario implements UserDetails {
 	private Integer idUsuario;
 	@Column(unique = true)
 	private String email;
-	
+
 	private String password;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -60,8 +60,8 @@ public class Usuario implements UserDetails {
 
 	@JsonIgnore
 	@Builder.Default
-	@OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL,  orphanRemoval = true)
-	private Set<Token> tokens= new HashSet<>();
+	@OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Set<Token> tokens = new HashSet<>();
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -70,6 +70,7 @@ public class Usuario implements UserDetails {
 	}
 
 	@Override
+	@JsonIgnore
 	public String getPassword() {
 		return password;
 	}

@@ -23,8 +23,8 @@ public class Cita {
     private Integer idCita;
 
     @ManyToOne(fetch = FetchType.LAZY) // Cambié EAGER a LAZY para optimizar rendimiento
-    @JoinColumn(name = "numero_documento", nullable = true, foreignKey = @ForeignKey(name = "FK_cita_cliente"))
-    private Cliente cliente;
+    @JoinColumn(name = "historia_clinica", nullable = true, foreignKey = @ForeignKey(name = "FK_cita_cliente"))
+    private HistoriaClinica historiaClinica;
 
     @ManyToOne(fetch = FetchType.LAZY) // Cambié EAGER a LAZY para optimizar rendimiento
     @JoinColumn(name = "id_horario", nullable = true, foreignKey = @ForeignKey(name = "FK_cita_horario"))

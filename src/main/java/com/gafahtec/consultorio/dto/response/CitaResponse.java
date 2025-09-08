@@ -19,7 +19,7 @@ public class CitaResponse implements Serializable {
 
 	private Integer idCita;
 
-	private ClienteResponse cliente;
+	private HistoriaClinicaResponse historiaClinica;
 
 	private HorarioResponse horario;
 

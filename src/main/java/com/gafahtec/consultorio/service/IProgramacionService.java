@@ -1,6 +1,6 @@
 package com.gafahtec.consultorio.service;
 
-import java.util.Set;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +14,7 @@ public interface IProgramacionService extends ICRUD<ProgramacionRequest, Program
 
     
 
-    Set<ProgramacionResponse> listarPorRango(String rango);
+    List<ProgramacionResponse> listarPorRango(String rango);
 
     
 
@@ -22,9 +22,11 @@ public interface IProgramacionService extends ICRUD<ProgramacionRequest, Program
 
     Page<ProgramacionResponse> listarProgramacionPageable(Integer idEmpresa,Pageable pageable);
 
-    Set<ProgramacionResponse> programacionActivo();
+    List<ProgramacionResponse> programacionActivo();
 
-    public Set<Programacion> programacionEntityActivo();
+    public List<Programacion> programacionEntityActivo();
     
     public Programacion modificarEntity(Programacion request);
+
+
 }

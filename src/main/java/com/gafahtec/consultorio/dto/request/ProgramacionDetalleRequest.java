@@ -22,5 +22,5 @@ public class ProgramacionDetalleRequest {
     private Integer idEmpresa;
     private Integer estado;
     private String[] checked;
-    private String numeroDocumento;
+    private Integer idEmpleado;
 }

@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -30,6 +31,7 @@ import lombok.ToString;
 @ToString(exclude = { "citas" })
 @EqualsAndHashCode(exclude = { "citas" })
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Horario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,5 +44,5 @@ public class Horario {
     @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "horario", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    private Set<Cita> citas = new HashSet<>();;
+    private Set<Cita> citas = new HashSet<>();
 }

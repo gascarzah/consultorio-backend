@@ -27,8 +27,8 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@ToString(exclude = { "usuarios" })
-@EqualsAndHashCode(exclude = { "usuarios" })
+@ToString(exclude = { "usuarios", "programacionDetalles" })
+@EqualsAndHashCode(exclude = { "usuarios", "programacionDetalles" })
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 
@@ -51,11 +51,9 @@ public class Empleado {
     private String telefono;
     private String celular;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_empresa")
     private Empresa empresa;
-	
 
     private Boolean activo;
 

@@ -13,7 +13,8 @@ import com.gafahtec.consultorio.model.consultorio.Programacion;
 
 @Repository
 public interface IProgramacionRepository extends IGenericRepository<Programacion,Integer>{
-    Set<Programacion> findByActivo(Boolean activo);
+
+    List<Programacion> findByActivo(Boolean activo);
     
     List<Programacion> findByRango(String rango);
     
@@ -22,7 +23,13 @@ public interface IProgramacionRepository extends IGenericRepository<Programacion
     @Query("Select p from Programacion p  " )
 //    @Query("Select p from Programacion p where p.idEmpresa = :idEmpresa " )
     Page<Programacion> listarProgramacionPageable(@Param("idEmpresa") Integer idEmpresa, Pageable pageable);
-    
-    
+
+    // Ordenar por fechaInicial (ascendente)
+    @Query("SELECT p FROM Programacion p WHERE p.activo = :activo ORDER BY p.fechaInicial, p.fechaFinal ")
+    List<Programacion> findByActivoOrderByFechaInicial(@Param("activo") Boolean activo);
+
+//    // Ordenar por fechaFinal (ascendente)
+//    @Query("SELECT p FROM Programacion p WHERE p.activo = :activo ORDER BY p.fechaFinal ")
+//    Set<Programacion> findByActivoOrderByFechaFinal(@Param("activo") Boolean activo);
     
 }
