@@ -15,29 +15,31 @@ import com.gafahtec.consultorio.model.auth.Usuario;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-public interface IUsuarioService extends ICRUD<UsuarioRequest, UsuarioResponse ,Integer>{
-	
+public interface IUsuarioService extends ICRUD<UsuarioRequest, UsuarioResponse, Integer> {
+
 	public Usuario register(UsuarioRequest request);
-	
+
 	public Usuario modificarUsuario(UsuarioRequest request);
-	
+
 	public AuthenticationResponse authenticate(AuthenticationRequest request);
-	
-	 public void refreshToken(
-	          HttpServletRequest request,
-	          HttpServletResponse response
-	  ) throws IOException;
 
-//	
-//	Usuario registrarUsuarioEmpleado(UsuarioRequest usuarioRequest);
-//
-    Page<Usuario> listarPageable(Pageable pageable);
-//
-    Usuario getUsuarioPorId(Integer id);
-//
-//    Usuario modificarUsuarioEmpleado(UsuarioRequest usuarioRequest);
+	public void refreshToken(
+			HttpServletRequest request,
+			HttpServletResponse response) throws IOException;
 
-	 public  Optional<Usuario> findByEmail(String email);
+	//
+	// Usuario registrarUsuarioEmpleado(UsuarioRequest usuarioRequest);
+	//
+	Page<Usuario> listarPageable(Pageable pageable);
+
+	Page<Usuario> buscarUsuarios(String search, Pageable pageable);
+
+	//
+	Usuario getUsuarioPorId(Integer id);
+	//
+	// Usuario modificarUsuarioEmpleado(UsuarioRequest usuarioRequest);
+
+	public Optional<Usuario> findByEmail(String email);
 
 	public UsuarioResponse findUsuarioByEmpleado(Integer id);
 }

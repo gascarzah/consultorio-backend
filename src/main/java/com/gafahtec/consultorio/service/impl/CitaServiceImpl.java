@@ -14,7 +14,9 @@ import com.gafahtec.consultorio.util.Constants;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,180 +28,202 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Transactional
 @Service
-public class CitaServiceImpl  implements ICitaService {
+public class CitaServiceImpl implements ICitaService {
 
-    private ICitaRepository iCitaRepository;
+	private ICitaRepository iCitaRepository;
 
-    private IHorarioRepository iHorarioRepository;
+	private IHorarioRepository iHorarioRepository;
 
+	@Override
+	public Page<CitaResponse> listarPageable(Pageable pageable) throws ResourceNotFoundException {
+		// Crear un Pageable con ordenamiento por fecha de ProgramacionDetalle
+		Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+				Sort.by("programacionDetalle.fecha").descending());
 
+		return iCitaRepository.findAll(sortedPageable)
+				.map(this::entityToResponse);
+	}
 
-    @Override
-    public Page<CitaResponse> listarPageable(Pageable pageable) throws ResourceNotFoundException{
-        return iCitaRepository.findAll(pageable)
-        		.map(this::entityToResponse);
-    }
+	@Override
+	public Page<CitaResponse> buscarCitas(String search, Pageable pageable) throws ResourceNotFoundException {
+		System.out.println("=== BUSCAR CITAS DEBUG ===");
+		System.out.println("Search term: '" + search + "'");
+		System.out.println("Page: " + pageable.getPageNumber());
+		System.out.println("Size: " + pageable.getPageSize());
 
-    public void registrarHorarios(List<ProgramacionDetalle> list) {
-      
-            List<Horario> horarios = iHorarioRepository.findAll();
+		// Crear un Pageable con ordenamiento por fecha de ProgramacionDetalle
+		Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+				Sort.by("programacionDetalle.fecha").descending());
 
-            for (ProgramacionDetalle programacionDetalle : list) {
+		Page<Cita> citas = iCitaRepository.buscarCitas(search, sortedPageable);
+		System.out.println("Total elements found: " + citas.getTotalElements());
+		System.out.println("Total pages: " + citas.getTotalPages());
 
-                for (Horario horario : horarios) {
+		return citas.map(this::entityToResponse);
+	}
 
-                	iCitaRepository.save(Cita.builder()
-                            .programacionDetalle(programacionDetalle)
-                            .horario(horario)
-                            .atendido(Constants.ACTIVO)
-                            .build());
-                }
-            }
-    }
+	public void registrarHorarios(List<ProgramacionDetalle> list) {
 
-    @Override
-    public List<CitaResponse> listarCitas(Integer idProgramacionDetalle) {
-        
-        return iCitaRepository.findByProgramacionDetalleOrderByCita(idProgramacionDetalle)
-        		.stream().map(this::entityToResponse).collect(Collectors.toList());
-    }
+		List<Horario> horarios = iHorarioRepository.findAll();
 
-    
-    @Override
-    public Integer eliminar(Integer idCita, Integer idHorario, Integer idProgramacionDetalle) {
-        
-        return iCitaRepository.eliminar(idCita, idHorario, idProgramacionDetalle);
-    }
+		for (ProgramacionDetalle programacionDetalle : list) {
 
-    
-    @Override
-    public Integer updateAtencion(Integer idCita) {
-        
-        return iCitaRepository.updateAtencion(idCita);
-    }
+			for (Horario horario : horarios) {
 
-    @Override
-    public List<CitaResponse> listaCitados(Integer idEmpleado, Integer numeroDiaSemana) {
+				iCitaRepository.save(Cita.builder()
+						.programacionDetalle(programacionDetalle)
+						.horario(horario)
+						.atendido(Constants.ACTIVO)
+						.build());
+			}
+		}
+	}
+
+	@Override
+	public List<CitaResponse> listarCitas(Integer idProgramacionDetalle) {
+
+		return iCitaRepository.findByProgramacionDetalleOrderByCita(idProgramacionDetalle)
+				.stream().map(this::entityToResponse).collect(Collectors.toList());
+	}
+
+	@Override
+	public Integer eliminar(Integer idCita, Integer idHorario, Integer idProgramacionDetalle) {
+
+		return iCitaRepository.eliminar(idCita, idHorario, idProgramacionDetalle);
+	}
+
+	@Override
+	public Integer updateAtencion(Integer idCita) {
+
+		return iCitaRepository.updateAtencion(idCita);
+	}
+
+	@Override
+	public List<CitaResponse> listaCitados(Integer idEmpleado, Integer numeroDiaSemana) {
 		LocalDate fechaActual = LocalDate.now();
 		DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 		String fechaFormateada = fechaActual.format(formato);
 
-//		var atencion = iCitaRepository.listaCitados( idEmpleado, numeroDiaSemana, fechaFormateada)
-//				.stream().map(c -> {
-//
-//					var list = new ArrayList<CitadosResponse>();
-//
-//
-//
-//					var citado = CitadosResponse.builder().paciente(c.getHistoriaClinica().getApellidoPaterno() + " " +
-//							c.getProgramacionDetalle().getEmpleado().getApellidoMaterno() + " " +
-//							c.getProgramacionDetalle().getEmpleado().getNombres())
-//							.horario(c.getHorario().getDescripcion())
-//							.build();
-//					list.add(citado);
-//
-//					var doctor =DoctorDisponibleResponse.builder().medico(c.getProgramacionDetalle().getEmpleado().getApellidoPaterno() + " " +
-//									c.getProgramacionDetalle().getEmpleado().getApellidoMaterno() + " " +
-//									c.getProgramacionDetalle().getEmpleado().getNombres())
-//							.citados(list)
-//							.build();
-//
-//
-//				return doctor;
-//				});
-//
-//		System.out.println("================> "+atencion);
+		// var atencion = iCitaRepository.listaCitados( idEmpleado, numeroDiaSemana,
+		// fechaFormateada)
+		// .stream().map(c -> {
+		//
+		// var list = new ArrayList<CitadosResponse>();
+		//
+		//
+		//
+		// var citado =
+		// CitadosResponse.builder().paciente(c.getHistoriaClinica().getApellidoPaterno()
+		// + " " +
+		// c.getProgramacionDetalle().getEmpleado().getApellidoMaterno() + " " +
+		// c.getProgramacionDetalle().getEmpleado().getNombres())
+		// .horario(c.getHorario().getDescripcion())
+		// .build();
+		// list.add(citado);
+		//
+		// var doctor
+		// =DoctorDisponibleResponse.builder().medico(c.getProgramacionDetalle().getEmpleado().getApellidoPaterno()
+		// + " " +
+		// c.getProgramacionDetalle().getEmpleado().getApellidoMaterno() + " " +
+		// c.getProgramacionDetalle().getEmpleado().getNombres())
+		// .citados(list)
+		// .build();
+		//
+		//
+		// return doctor;
+		// });
+		//
+		// System.out.println("================> "+atencion);
 
-        return iCitaRepository.listaCitados( idEmpleado, numeroDiaSemana, fechaFormateada)
-        		.stream().map(this::entityToResponse).collect(Collectors.toList());
-    }
+		return iCitaRepository.listaCitados(idEmpleado, numeroDiaSemana, fechaFormateada)
+				.stream().map(this::entityToResponse).collect(Collectors.toList());
+	}
 
-//    @Override
-//    public List<CitaResponse> listaHistorialCitaCliente(Integer idCliente) {
-//        
-//        return iCitaRepository.listaHistorialCitaCliente(idCliente)
-//        		.stream().map(this::entityToResponse).collect(Collectors.toList());
-//    }
+	// @Override
+	// public List<CitaResponse> listaHistorialCitaCliente(Integer idCliente) {
+	//
+	// return iCitaRepository.listaHistorialCitaCliente(idCliente)
+	// .stream().map(this::entityToResponse).collect(Collectors.toList());
+	// }
 
-    @Override
-    public Page<CitaResponse> listaHistorialCitaCliente(String numeroDocumento, Pageable paging) {
-        
-        return iCitaRepository.listaHistorialCitaCliente(numeroDocumento, paging)
-        		.map(this::entityToResponse);
-    }
+	@Override
+	public Page<CitaResponse> listaHistorialCitaCliente(String numeroDocumento, Pageable paging) {
 
-    @Override
-    public List<Cita> listarNoAtendidos(Integer idProgramacionDetalle,Boolean atendido) {
-        
-        return iCitaRepository.getNoAtendidos(idProgramacionDetalle, atendido);
-    }
+		return iCitaRepository.listaHistorialCitaCliente(numeroDocumento, paging)
+				.map(this::entityToResponse);
+	}
+
+	@Override
+	public List<Cita> listarNoAtendidos(Integer idProgramacionDetalle, Boolean atendido) {
+
+		return iCitaRepository.getNoAtendidos(idProgramacionDetalle, atendido);
+	}
 
 	@Override
 	public CitaResponse registrar(CitaRequest request) {
-		 var obj = iCitaRepository.save(Cita.builder()
-	                .horario(Horario.builder().idHorario(request.getIdHorario()).build())
-	                .programacionDetalle(ProgramacionDetalle.builder()
-	                        .idProgramacionDetalle(request.getIdProgramacionDetalle()).build())
-	                .historiaClinica(HistoriaClinica.builder().idHistoriaClinica(request.getIdHistoriaClinica()).build())
-	                .atendido(Constants.DESATENDIDO)
-	                .build());
+		var obj = iCitaRepository.save(Cita.builder()
+				.horario(Horario.builder().idHorario(request.getIdHorario()).build())
+				.programacionDetalle(ProgramacionDetalle.builder()
+						.idProgramacionDetalle(request.getIdProgramacionDetalle()).build())
+				.historiaClinica(HistoriaClinica.builder().idHistoriaClinica(request.getIdHistoriaClinica()).build())
+				.atendido(Constants.DESATENDIDO)
+				.build());
 		return entityToResponse(obj);
 	}
 
 	@Override
 	public CitaResponse modificar(CitaRequest request) {
-		 
-	        var obj = iCitaRepository.save( Cita.builder()
-	                .idCita(request.getIdCita())
-	                .historiaClinica(HistoriaClinica.builder().idHistoriaClinica(request.getIdHistoriaClinica()).build())
-	                .programacionDetalle(ProgramacionDetalle.builder().idProgramacionDetalle(request.getIdProgramacionDetalle()).build())
-	                .horario(Horario.builder().idHorario(request.getIdHorario()).build())
-	                .atendido(request.getAtendido())
-	                .informe(request.getInforme())
-	                .build());
-	        return entityToResponse(obj);
+
+		var obj = iCitaRepository.save(Cita.builder()
+				.idCita(request.getIdCita())
+				.historiaClinica(HistoriaClinica.builder().idHistoriaClinica(request.getIdHistoriaClinica()).build())
+				.programacionDetalle(
+						ProgramacionDetalle.builder().idProgramacionDetalle(request.getIdProgramacionDetalle()).build())
+				.horario(Horario.builder().idHorario(request.getIdHorario()).build())
+				.atendido(request.getAtendido())
+				.informe(request.getInforme())
+				.build());
+		return entityToResponse(obj);
 	}
 
 	@Override
 	public List<CitaResponse> listar() {
-		
+
 		return iCitaRepository.findAll()
-        		.stream().map(this::entityToResponse).collect(Collectors.toList());
+				.stream().map(this::entityToResponse).collect(Collectors.toList());
 	}
 
 	@Override
 	public CitaResponse listarPorId(Integer id) {
-		
+
 		return entityToResponse(iCitaRepository.findById(id).get());
-				
+
 	}
 
 	@Override
 	public void eliminar(Integer id) {
-		
-		
+
 	}
-	
+
 	public Cita modificarToEntity(Cita request) {
-		 
-  
-        return iCitaRepository.save(request);
-}
+
+		return iCitaRepository.save(request);
+	}
 
 	@Override
 	public List<Cita> listarPorFecha(String fecha) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		LocalDate date = LocalDate.parse(fecha.trim(), formatter);
-		System.out.println("date === "+date);
+		System.out.println("date === " + date);
 		List<Cita> citas = iCitaRepository.listarPacientesHoy(date);
 
-        return citas;
+		return citas;
 	}
 
 	public List<DoctorDisponibleResponse> listarCitados(String fecha) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		LocalDate date = LocalDate.parse(fecha.trim(), formatter);
-		System.out.println("date === "+date);
+		System.out.println("date === " + date);
 		List<Cita> citas = iCitaRepository.listarPacientesHoy(date);
 
 		List<DoctorDisponibleResponse> atenciones = citas
@@ -207,18 +231,18 @@ public class CitaServiceImpl  implements ICitaService {
 
 					var list = new ArrayList<CitadosResponse>();
 					var citado = CitadosResponse.builder().paciente(c.getHistoriaClinica().getApellidoPaterno() + " " +
-									c.getHistoriaClinica().getApellidoMaterno() + " " +
-									c.getHistoriaClinica().getNombres())
+							c.getHistoriaClinica().getApellidoMaterno() + " " +
+							c.getHistoriaClinica().getNombres())
 							.horario(c.getHorario().getDescripcion())
 							.build();
 					list.add(citado);
 
-					var doctor =DoctorDisponibleResponse.builder().medico(c.getProgramacionDetalle().getEmpleado().getApellidoPaterno() + " " +
+					var doctor = DoctorDisponibleResponse.builder()
+							.medico(c.getProgramacionDetalle().getEmpleado().getApellidoPaterno() + " " +
 									c.getProgramacionDetalle().getEmpleado().getApellidoMaterno() + " " +
 									c.getProgramacionDetalle().getEmpleado().getNombres())
 							.citados(list)
 							.build();
-
 
 					return doctor;
 				}).collect(Collectors.toList());
@@ -234,22 +258,21 @@ public class CitaServiceImpl  implements ICitaService {
 		return citados;
 	}
 
-	public Map<String, List<CitadosResponse>> agruparCitas(List<DoctorDisponibleResponse> atenciones){
+	public Map<String, List<CitadosResponse>> agruparCitas(List<DoctorDisponibleResponse> atenciones) {
 		Map<String, List<CitadosResponse>> atencionesAgrupadas = atenciones.stream()
 				.collect(Collectors.groupingBy(
 						DoctorDisponibleResponse::getMedico, // Clave: Nombre del médico
 						Collectors.flatMapping(
 								d -> d.getCitados().stream(), // Aplanar la lista de citados
 								Collectors.toList() // Recolectar en una lista única
-						)
-				));
-		System.out.println("atenciones ================> "+atencionesAgrupadas);
+						)));
+		System.out.println("atenciones ================> " + atencionesAgrupadas);
 
 		return atencionesAgrupadas;
 	}
 
 	private CitaResponse entityToResponse(Cita entity) {
-		System.out.println("entity == > " +entity);
+		System.out.println("entity == > " + entity);
 		var response = new CitaResponse();
 		BeanUtils.copyProperties(entity, response);
 		var historiaClinica = new HistoriaClinicaResponse();
@@ -258,15 +281,20 @@ public class CitaServiceImpl  implements ICitaService {
 		BeanUtils.copyProperties(entity.getHorario(), horarioResponse);
 		var programacionDetalleResponse = new ProgramacionDetalleResponse();
 		BeanUtils.copyProperties(entity.getProgramacionDetalle(), programacionDetalleResponse);
-		
-		if(!Objects.isNull(entity.getProgramacionDetalle().getEmpleado())) {
-			
-		
-		var empleado = new EmpleadoResponse();
-		BeanUtils.copyProperties(entity.getProgramacionDetalle().getEmpleado(), empleado);
 
-		
-		programacionDetalleResponse.setEmpleado(empleado);
+		if (!Objects.isNull(entity.getProgramacionDetalle().getEmpleado())) {
+
+			var empleado = new EmpleadoResponse();
+			BeanUtils.copyProperties(entity.getProgramacionDetalle().getEmpleado(), empleado);
+
+			// Solo crear TipoEmpleadoResponse si tipoEmpleado no es null
+			if (entity.getProgramacionDetalle().getEmpleado().getTipoEmpleado() != null) {
+				var tipoEmpleado = new TipoEmpleadoResponse();
+				BeanUtils.copyProperties(entity.getProgramacionDetalle().getEmpleado().getTipoEmpleado(), tipoEmpleado);
+				empleado.setTipoEmpleado(tipoEmpleado);
+			}
+
+			programacionDetalleResponse.setEmpleado(empleado);
 		}
 		response.setHistoriaClinica(historiaClinica);
 		response.setHorario(horarioResponse);

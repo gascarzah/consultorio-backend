@@ -28,5 +28,7 @@ public class EmpleadoResponse implements Serializable{
 	
 
     private Boolean activo;
-    private Integer idRol;
+    private Integer idTipoEmpleado;
+    private String tipoEmpleadoNombre;
+    private TipoEmpleadoResponse tipoEmpleado;
 }

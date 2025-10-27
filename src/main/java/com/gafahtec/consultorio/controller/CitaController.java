@@ -5,6 +5,7 @@ import com.gafahtec.consultorio.dto.response.CitaResponse;
 import com.gafahtec.consultorio.dto.response.CitadosResponse;
 import com.gafahtec.consultorio.dto.response.DoctorDisponibleResponse;
 import com.gafahtec.consultorio.exception.ResourceNotFoundException;
+import com.gafahtec.consultorio.model.consultorio.Cita;
 import com.gafahtec.consultorio.service.ICitaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -15,6 +16,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -172,7 +174,7 @@ public class CitaController {
         return new ResponseEntity<>(paginas, HttpStatus.OK);
     }
 
-    @Operation(summary = "Listar citas paginadas", description = "Devuelve las citas paginadas.")
+    @Operation(summary = "Listar citas paginadas", description = "Devuelve las citas paginadas. Opcionalmente puede incluir un parámetro de búsqueda para filtrar por datos del paciente (documento, nombres, apellidos, teléfono, email).")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consulta exitosa"),
             @ApiResponse(responseCode = "204", description = "Sin contenido"),
@@ -181,17 +183,79 @@ public class CitaController {
     @GetMapping("/pageable")
     public ResponseEntity<Page<CitaResponse>> listarPageable(Pageable pageable,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "3") int size) throws ResourceNotFoundException {
+            @RequestParam(defaultValue = "3") int size,
+            @RequestParam(required = false) String search) throws ResourceNotFoundException {
         System.out.println("page  " + page);
         System.out.println("size  " + size);
+        System.out.println("search  " + search);
 
-        Page<CitaResponse> paginas = iCitaService.listarPageable(pageable);
-        System.out.println("listarPageableCitas paginas " + paginas);
+        Page<CitaResponse> paginas;
+
+        // Si hay un parámetro de búsqueda, usar el método de búsqueda
+        if (search != null && !search.trim().isEmpty()) {
+            System.out.println("=== USANDO BÚSQUEDA ===");
+            System.out.println("Search parameter received: '" + search + "'");
+            paginas = iCitaService.buscarCitas(search.trim(), pageable);
+            System.out.println("buscarCitas paginas " + paginas);
+        } else {
+            System.out.println("=== USANDO LISTADO NORMAL ===");
+            paginas = iCitaService.listarPageable(pageable);
+            System.out.println("listarPageableCitas paginas " + paginas);
+        }
 
         if (paginas.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(paginas, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Buscar citas - Endpoint de prueba", description = "Endpoint simple para probar la búsqueda de citas.")
+    @GetMapping("/buscar")
+    public ResponseEntity<Page<CitaResponse>> buscarCitasSimple(
+            @RequestParam String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) throws ResourceNotFoundException {
+
+        System.out.println("=== ENDPOINT DE PRUEBA ===");
+        System.out.println("Search: '" + search + "'");
+        System.out.println("Page: " + page);
+        System.out.println("Size: " + size);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("programacionDetalle.fecha").descending());
+        Page<CitaResponse> paginas = iCitaService.buscarCitas(search, pageable);
+
+        System.out.println("Resultados encontrados: " + paginas.getTotalElements());
+
+        if (paginas.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(paginas, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Diagnóstico - Ver todas las citas", description = "Endpoint para verificar qué datos hay en la base de datos.")
+    @GetMapping("/diagnostico")
+    public ResponseEntity<List<CitaResponse>> diagnostico() throws ResourceNotFoundException {
+        System.out.println("=== DIAGNÓSTICO DE CITAS ===");
+
+        List<CitaResponse> todasLasCitas = iCitaService.listar();
+        System.out.println("Total de citas en la base de datos: " + todasLasCitas.size());
+
+        for (CitaResponse cita : todasLasCitas) {
+            System.out.println("Cita ID: " + cita.getIdCita());
+            if (cita.getHistoriaClinica() != null) {
+                System.out.println("  - Documento: " + cita.getHistoriaClinica().getNumeroDocumento());
+                System.out.println("  - Nombres: " + cita.getHistoriaClinica().getNombres());
+                System.out.println("  - Apellido Paterno: " + cita.getHistoriaClinica().getApellidoPaterno());
+                System.out.println("  - Apellido Materno: " + cita.getHistoriaClinica().getApellidoMaterno());
+                System.out.println("  - Teléfono: " + cita.getHistoriaClinica().getTelefono());
+                System.out.println("  - Email: " + cita.getHistoriaClinica().getEmail());
+            } else {
+                System.out.println("  - SIN HISTORIA CLÍNICA");
+            }
+            System.out.println("---");
+        }
+
+        return new ResponseEntity<>(todasLasCitas, HttpStatus.OK);
     }
 
     @Operation(summary = "Listar citas por fecha paginadas", description = "Devuelve las citas de una fecha específica paginadas.")
@@ -201,7 +265,7 @@ public class CitaController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/pageable/{fecha}")
-    public ResponseEntity listarPageable(Pageable pageable,
+    public ResponseEntity<List<Cita>> listarPageablePorFecha(Pageable pageable,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "3") int size,
             @PathVariable String fecha) {
@@ -221,7 +285,7 @@ public class CitaController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/hoy/{fecha}")
-    public ResponseEntity citasHoy(@PathVariable String fecha) {
+    public ResponseEntity<List<DoctorDisponibleResponse>> citasHoy(@PathVariable String fecha) {
 
         System.out.println("fecha  " + fecha);
 

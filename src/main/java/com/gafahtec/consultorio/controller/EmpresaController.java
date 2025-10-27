@@ -114,7 +114,7 @@ public class EmpresaController {
 		return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
 	}
 
-	@Operation(summary = "Listar empresas paginadas", description = "Obtiene empresas paginadas.")
+	@Operation(summary = "Listar empresas paginadas", description = "Obtiene empresas paginadas. Opcionalmente puede incluir un parámetro de búsqueda para filtrar por nombre de la empresa.")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "Consulta exitosa"),
 			@ApiResponse(responseCode = "204", description = "Sin contenido"),
@@ -123,8 +123,21 @@ public class EmpresaController {
 	@GetMapping("/pageable")
 	public ResponseEntity<Page<EmpresaResponse>> listarPageable(@PageableDefault(sort = "nombre") Pageable pageable,
 			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "5") int size) throws Exception {
-		var paginas = iEmpresaService.listarPageable(pageable);
+			@RequestParam(defaultValue = "5") int size,
+			@RequestParam(required = false) String search) throws Exception {
+
+		Page<EmpresaResponse> paginas;
+
+		// Si hay un parámetro de búsqueda, usar el método de búsqueda
+		if (search != null && !search.trim().isEmpty()) {
+			System.out.println("=== USANDO BÚSQUEDA EMPRESAS ===");
+			System.out.println("Search parameter received: '" + search + "'");
+			paginas = iEmpresaService.buscarEmpresas(search.trim(), pageable);
+		} else {
+			System.out.println("=== USANDO LISTADO NORMAL EMPRESAS ===");
+			paginas = iEmpresaService.listarPageable(pageable);
+		}
+
 		if (paginas.isEmpty()) {
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		}

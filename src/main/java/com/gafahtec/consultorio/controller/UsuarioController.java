@@ -102,7 +102,7 @@ public class UsuarioController {
     // return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
     // }
 
-    @Operation(summary = "Listar usuarios paginados", description = "Obtiene usuarios paginados.")
+    @Operation(summary = "Listar usuarios paginados", description = "Obtiene usuarios paginados. Opcionalmente puede incluir un parámetro de búsqueda para filtrar por email, nombres o apellidos.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consulta exitosa"),
             @ApiResponse(responseCode = "204", description = "Sin contenido"),
@@ -111,8 +111,21 @@ public class UsuarioController {
     @GetMapping("/pageable")
     public ResponseEntity<Page<Usuario>> listarPageable(@PageableDefault(sort = "email") Pageable pageable,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) throws Exception {
-        Page<Usuario> paginas = iUsuarioService.listarPageable(pageable);
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) String search) throws Exception {
+
+        Page<Usuario> paginas;
+
+        // Si hay un parámetro de búsqueda, usar el método de búsqueda
+        if (search != null && !search.trim().isEmpty()) {
+            System.out.println("=== USANDO BÚSQUEDA USUARIOS ===");
+            System.out.println("Search parameter received: '" + search + "'");
+            paginas = iUsuarioService.buscarUsuarios(search.trim(), pageable);
+        } else {
+            System.out.println("=== USANDO LISTADO NORMAL USUARIOS ===");
+            paginas = iUsuarioService.listarPageable(pageable);
+        }
+
         if (paginas.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }

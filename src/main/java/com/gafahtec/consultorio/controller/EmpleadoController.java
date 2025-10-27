@@ -120,15 +120,30 @@ public class EmpleadoController {
     // return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
     // }
 
-    @Operation(summary = "Listar empleados paginados", description = "Obtiene empleados paginados.")
+    @Operation(summary = "Listar empleados paginados", description = "Obtiene empleados paginados. Opcionalmente puede incluir un parámetro de búsqueda para filtrar por nombres, apellidos, documento o email del empleado.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consulta exitosa"),
             @ApiResponse(responseCode = "204", description = "Sin contenido"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/pageable")
-    public ResponseEntity<Page<EmpleadoResponse>> listarPageable(Pageable pageable) throws Exception {
-        var paginas = iEmpleadoService.listarPageable(pageable);
+    public ResponseEntity<Page<EmpleadoResponse>> listarPageable(Pageable pageable,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) String search) throws Exception {
+
+        Page<EmpleadoResponse> paginas;
+
+        // Si hay un parámetro de búsqueda, usar el método de búsqueda
+        if (search != null && !search.trim().isEmpty()) {
+            System.out.println("=== USANDO BÚSQUEDA EMPLEADOS ===");
+            System.out.println("Search parameter received: '" + search + "'");
+            paginas = iEmpleadoService.buscarEmpleados(search.trim(), pageable);
+        } else {
+            System.out.println("=== USANDO LISTADO NORMAL EMPLEADOS ===");
+            paginas = iEmpleadoService.listarPageable(pageable);
+        }
+
         if (paginas.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }

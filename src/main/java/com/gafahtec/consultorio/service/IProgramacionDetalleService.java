@@ -15,50 +15,36 @@ import com.gafahtec.consultorio.model.consultorio.ProgramacionDetalle;
 
 import jakarta.validation.Valid;
 
-public interface IProgramacionDetalleService  {
+public interface IProgramacionDetalleService {
 
-
-	List<ProgramacionDetalleResponse> registrar(ProgramacionDetalleRequest request) ;
-	
+	List<ProgramacionDetalleResponse> registrar(ProgramacionDetalleRequest request);
 
 	ProgramacionDetalleResponse modificar(@Valid ProgramacionDetalleRequest programacionDetalleRequest);
 
-
 	void eliminar(Integer id);
-	
+
 	Page<ProgramacionDetalleResponse> listarPageable(Pageable pageable);
-	
+
+	Page<ProgramacionDetalleResponse> buscarProgramacionesDetalle(String search, Pageable pageable);
+
 	List<ProgramacionDetalleResponse> getProgramacionEmpleado(ProgramacionDetalleRequest programacionDetalleRequest);
-	
+
 	Boolean existeProgramacionEmpleado(ProgramacionDetalleRequest request);
 
-
-	List<ProgramacionDetalleResponse> listarDiasProgramados(String numeroDocumento, Integer idEmpresa) throws ParseException;
+	List<ProgramacionDetalleResponse> listarDiasProgramados(String numeroDocumento, Integer idEmpresa)
+			throws ParseException;
 
 	List<ProgramacionDetalle> getProgramacionDetalleActivo(Boolean estado);
+
 	public ProgramacionDetalle modificarEntity(ProgramacionDetalle programacionDetalle);
-    //////////////////////////////////////////////
-	
-
-
-	
+	//////////////////////////////////////////////
 
 	List<ProgramacionDetalleResponse> verificaProgramacion(Integer idMedico, String fechaInicial, String fechaFinal);
 
 	List<ProgramacionDetalleResponse> citasPendientes(Integer idMedico, Integer numeroDiaSemana);
 
-    
-
 	ProgramacionDetalleHelperResponse listarPorIdProgramacion(Integer idProgramacion);
 
-
 	void generarProgramacionAutomaticaCada3Meses();
-
-
-
-
-
-
-
 
 }

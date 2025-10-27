@@ -15,7 +15,7 @@ import lombok.*;
 @Builder
 @ToString
 @EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Cita {
 
     @Id

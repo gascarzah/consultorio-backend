@@ -109,7 +109,7 @@ public class HistoriaClinicaController {
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
-	@Operation(summary = "Listar historias clínicas paginadas", description = "Obtiene historias clínicas paginadas.")
+	@Operation(summary = "Listar historias clínicas paginadas", description = "Obtiene historias clínicas paginadas. Opcionalmente puede incluir un parámetro de búsqueda para filtrar por nombres, apellidos, documento, teléfono o email del paciente.")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "Consulta exitosa"),
 			@ApiResponse(responseCode = "204", description = "Sin contenido"),
@@ -117,9 +117,23 @@ public class HistoriaClinicaController {
 	})
 	@GetMapping("/pageable")
 	public ResponseEntity<Page<HistoriaClinicaResponse>> listarPageable(
-			@PageableDefault(sort = "apellidoPaterno") Pageable pageable, @RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "5") int size) throws Exception {
-		Page<HistoriaClinicaResponse> paginas = iHistoriaClinicaService.listarPageable(pageable);
+			@PageableDefault(sort = "apellidoPaterno") Pageable pageable,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "5") int size,
+			@RequestParam(required = false) String search) throws Exception {
+
+		Page<HistoriaClinicaResponse> paginas;
+
+		// Si hay un parámetro de búsqueda, usar el método de búsqueda
+		if (search != null && !search.trim().isEmpty()) {
+			System.out.println("=== USANDO BÚSQUEDA HISTORIAS CLÍNICAS ===");
+			System.out.println("Search parameter received: '" + search + "'");
+			paginas = iHistoriaClinicaService.buscarHistoriasClinicas(search.trim(), pageable);
+		} else {
+			System.out.println("=== USANDO LISTADO NORMAL HISTORIAS CLÍNICAS ===");
+			paginas = iHistoriaClinicaService.listarPageable(pageable);
+		}
+
 		System.out.println("paginas " + paginas);
 		if (paginas.isEmpty()) {
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);

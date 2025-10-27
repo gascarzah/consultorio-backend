@@ -55,6 +55,10 @@ public class Empleado {
     @JoinColumn(name = "id_empresa")
     private Empresa empresa;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_tipo_empleado")
+    private TipoEmpleado tipoEmpleado;
+
     private Boolean activo;
 
     @JsonIgnore

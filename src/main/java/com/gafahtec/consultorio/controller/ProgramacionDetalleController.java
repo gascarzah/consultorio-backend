@@ -83,7 +83,7 @@ public class ProgramacionDetalleController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Listar detalles de programación paginados", description = "Obtiene detalles de programación paginados.")
+    @Operation(summary = "Listar detalles de programación paginados", description = "Obtiene detalles de programación paginados. Opcionalmente puede incluir un parámetro de búsqueda para filtrar por datos del empleado.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consulta exitosa"),
             @ApiResponse(responseCode = "204", description = "Sin contenido"),
@@ -91,10 +91,21 @@ public class ProgramacionDetalleController {
     })
     @GetMapping("/pageable")
     public ResponseEntity<Page<ProgramacionDetalleResponse>> listarPageable(@RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) throws Exception {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) String search) throws Exception {
 
         Pageable paging = PageRequest.of(page, size, Sort.by("numeroDiaSemana").descending());
-        Page<ProgramacionDetalleResponse> paginas = iProgramacionDetalleService.listarPageable(paging);
+        Page<ProgramacionDetalleResponse> paginas;
+
+        // Si hay un parámetro de búsqueda, usar el método de búsqueda
+        if (search != null && !search.trim().isEmpty()) {
+            System.out.println("=== USANDO BÚSQUEDA PROGRAMACIÓN DETALLE ===");
+            System.out.println("Search parameter received: '" + search + "'");
+            paginas = iProgramacionDetalleService.buscarProgramacionesDetalle(search.trim(), paging);
+        } else {
+            System.out.println("=== USANDO LISTADO NORMAL PROGRAMACIÓN DETALLE ===");
+            paginas = iProgramacionDetalleService.listarPageable(paging);
+        }
 
         if (paginas.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

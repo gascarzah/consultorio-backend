@@ -17,21 +17,30 @@ import com.gafahtec.consultorio.repository.IRolRepository;
 import com.gafahtec.consultorio.service.IRolService;
 
 import lombok.AllArgsConstructor;
+
 @AllArgsConstructor
 @Service
 @Transactional
-public class RolServiceImpl  implements IRolService {
+public class RolServiceImpl implements IRolService {
 
-	
 	private IRolRepository iRolRepository;
-	
 
-    @Override
-    public Page<RolResponse> listarPageable(Pageable pageable) {
-        // TODO Auto-generated method stub
-        return iRolRepository.findAll(pageable).map(this::entityToResponse);
-    }
+	@Override
+	public Page<RolResponse> listarPageable(Pageable pageable) {
+		// TODO Auto-generated method stub
+		return iRolRepository.findAll(pageable).map(this::entityToResponse);
+	}
 
+	@Override
+	public Page<RolResponse> buscarRoles(String search, Pageable pageable) {
+		System.out.println("=== BUSCAR ROLES DEBUG ===");
+		System.out.println("Search term: '" + search + "'");
+
+		Page<Rol> roles = iRolRepository.buscarRoles(search, pageable);
+		System.out.println("Total roles found: " + roles.getTotalElements());
+
+		return roles.map(this::entityToResponse);
+	}
 
 	@Override
 	public RolResponse registrar(RolRequest request) {
@@ -41,7 +50,6 @@ public class RolServiceImpl  implements IRolService {
 		return entityToResponse(obj);
 	}
 
-
 	@Override
 	public RolResponse modificar(RolRequest request) {
 		var entity = new Rol();
@@ -50,29 +58,26 @@ public class RolServiceImpl  implements IRolService {
 		return entityToResponse(obj);
 	}
 
-
 	@Override
 	public List<RolResponse> listar() {
 		return iRolRepository.findAll()
-        		.stream().map(this::entityToResponse).collect(Collectors.toList());
+				.stream().map(this::entityToResponse).collect(Collectors.toList());
 	}
-
 
 	@Override
 	public RolResponse listarPorId(Integer id) {
 		return entityToResponse(iRolRepository.findById(id).get());
 	}
 
-
 	@Override
 	public void eliminar(Integer id) {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
+
 	private RolResponse entityToResponse(Rol entity) {
 		var response = new RolResponse();
-		BeanUtils.copyProperties(entity,response );
+		BeanUtils.copyProperties(entity, response);
 		return response;
 	}
 

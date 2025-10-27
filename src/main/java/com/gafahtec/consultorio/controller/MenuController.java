@@ -57,7 +57,7 @@ public class MenuController {
         return new ResponseEntity<>(obj, HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Listar menús paginados", description = "Obtiene menús paginados.")
+    @Operation(summary = "Listar menús paginados", description = "Obtiene menús paginados. Opcionalmente puede incluir un parámetro de búsqueda para filtrar por nombre del menú.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consulta exitosa"),
             @ApiResponse(responseCode = "204", description = "Sin contenido"),
@@ -66,8 +66,21 @@ public class MenuController {
     @GetMapping("/pageable")
     public ResponseEntity<Page<MenuResponse>> listarPageable(@PageableDefault(sort = "idMenu") Pageable pageable,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) throws Exception {
-        var paginas = iMenuService.listarPageable(pageable);
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) String search) throws Exception {
+
+        Page<MenuResponse> paginas;
+
+        // Si hay un parámetro de búsqueda, usar el método de búsqueda
+        if (search != null && !search.trim().isEmpty()) {
+            System.out.println("=== USANDO BÚSQUEDA MENÚS ===");
+            System.out.println("Search parameter received: '" + search + "'");
+            paginas = iMenuService.buscarMenus(search.trim(), pageable);
+        } else {
+            System.out.println("=== USANDO LISTADO NORMAL MENÚS ===");
+            paginas = iMenuService.listarPageable(pageable);
+        }
+
         if (paginas.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }

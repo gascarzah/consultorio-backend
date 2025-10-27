@@ -165,6 +165,17 @@ public class UsuarioServiceImpl implements IUsuarioService {
 	}
 
 	@Override
+	public Page<Usuario> buscarUsuarios(String search, Pageable pageable) {
+		System.out.println("=== BUSCAR USUARIOS DEBUG ===");
+		System.out.println("Search term: '" + search + "'");
+
+		Page<Usuario> usuarios = iUsuarioRepository.buscarUsuarios(search, pageable);
+		System.out.println("Total usuarios found: " + usuarios.getTotalElements());
+
+		return usuarios;
+	}
+
+	@Override
 	public Usuario getUsuarioPorId(Integer id) {
 
 		return iUsuarioRepository.findById(id).get();

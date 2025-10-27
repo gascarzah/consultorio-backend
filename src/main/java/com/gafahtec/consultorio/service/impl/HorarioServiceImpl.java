@@ -25,76 +25,61 @@ import lombok.extern.log4j.Log4j2;
 @Service
 @Transactional
 @Log4j2
-public class HorarioServiceImpl   implements IHorarioService {
+public class HorarioServiceImpl implements IHorarioService {
 
-	
 	private IHorarioRepository iHorarioRepository;
 	private ICitaRepository iCitaRepository;
-	
 
-    @Override
-    public Page<HorarioResponse> listarPageable(Pageable pageable) {
-        return iHorarioRepository.findAll(pageable)
-        		.map(this::entityToResponse);
-    }
-
-
+	@Override
+	public Page<HorarioResponse> listarPageable(Pageable pageable) {
+		return iHorarioRepository.findAll(pageable)
+				.map(this::entityToResponse);
+	}
 
 	@Override
 	public List<HorarioResponse> obtenerHorariosDisponibles(Integer idProgramacionDetalle, Integer idEmpresa) {
-		var horarios = iHorarioRepository.obtenerHorariosDisponibles(idProgramacionDetalle,idEmpresa);
-		log.info("horarios =====> "+horarios);
-        return horarios.stream().map(this::entityToResponse).toList();
+		var horarios = iHorarioRepository.obtenerHorariosDisponibles(idProgramacionDetalle, idEmpresa);
+		log.info("horarios =====> " + horarios);
+		return horarios.stream().map(this::entityToResponse).toList();
 	}
-
 
 	@Override
 	public HorarioResponse registrar(HorarioRequest request) {
 		var horario = Horario.builder().build();
-        BeanUtils.copyProperties(request, horario);
-        var obj = iHorarioRepository.save(horario);
+		BeanUtils.copyProperties(request, horario);
+		var obj = iHorarioRepository.save(horario);
 
-        log.info("objeto creado " + obj);
+		log.info("objeto creado " + obj);
 		return entityToResponse(obj);
 	}
-
-
 
 	@Override
 	public HorarioResponse modificar(HorarioRequest request) {
 		var horario = Horario.builder().build();
-        BeanUtils.copyProperties(request, horario);
-        var obj = iHorarioRepository.save(horario);
+		BeanUtils.copyProperties(request, horario);
+		var obj = iHorarioRepository.save(horario);
 
-        log.info("objeto creado " + obj);
-        return entityToResponse(obj);
+		log.info("objeto creado " + obj);
+		return entityToResponse(obj);
 	}
-
-
 
 	@Override
 	public List<HorarioResponse> listar() {
-		
+
 		return iHorarioRepository.findAll().stream()
 				.map(this::entityToResponse).collect(Collectors.toList());
 	}
 
-
-
 	@Override
 	public HorarioResponse listarPorId(Integer id) {
-		
+
 		return entityToResponse(iHorarioRepository.findById(id).get());
 	}
 
-
-
 	@Override
 	public void eliminar(Integer id) {
-		
-		
-	}
 
+	}
 
 	private HorarioResponse entityToResponse(Horario entity) {
 		var response = new HorarioResponse();

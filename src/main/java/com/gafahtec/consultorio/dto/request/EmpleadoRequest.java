@@ -31,6 +31,5 @@ public class EmpleadoRequest {
     private LocalDateTime fecha;
     private Integer idEmpresa;
     private Integer idTipoEmpleado;
-    private Integer idRol;
     private String email;
 }

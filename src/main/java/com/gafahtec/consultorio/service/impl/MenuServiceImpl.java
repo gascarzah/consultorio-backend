@@ -22,42 +22,44 @@ import lombok.extern.log4j.Log4j2;
 @Service
 @Transactional
 @Log4j2
-public class MenuServiceImpl   implements IMenuService {
+public class MenuServiceImpl implements IMenuService {
 
-	
 	private IMenuRepository iMenuRepository;
-	
 
+	@Override
+	public Page<MenuResponse> listarPageable(Pageable pageable) {
+		return iMenuRepository.findAll(pageable)
+				.map(this::entityToResponse);
+	}
 
-    @Override
-    public Page<MenuResponse> listarPageable(Pageable pageable) {
-        return iMenuRepository.findAll(pageable)
-        		.map(this::entityToResponse);
-    }
+	@Override
+	public Page<MenuResponse> buscarMenus(String search, Pageable pageable) {
+		System.out.println("=== BUSCAR MENÚS DEBUG ===");
+		System.out.println("Search term: '" + search + "'");
 
+		Page<Menu> menus = iMenuRepository.buscarMenus(search, pageable);
+		System.out.println("Total menús found: " + menus.getTotalElements());
 
+		return menus.map(this::entityToResponse);
+	}
 
 	@Override
 	public MenuResponse registrar(MenuRequest request) {
 		var menu = Menu.builder().build();
-        BeanUtils.copyProperties(request, menu);
-        var obj = iMenuRepository.save(menu);
+		BeanUtils.copyProperties(request, menu);
+		var obj = iMenuRepository.save(menu);
 
-        log.info("objeto creado " + obj);
+		log.info("objeto creado " + obj);
 		return entityToResponse(obj);
 	}
 
-
-
 	@Override
 	public MenuResponse modificar(MenuRequest request) {
-		 var menu = Menu.builder().build();
-         BeanUtils.copyProperties(request, menu);
-        var obj = iMenuRepository.save(menu);
-        return entityToResponse(obj);
+		var menu = Menu.builder().build();
+		BeanUtils.copyProperties(request, menu);
+		var obj = iMenuRepository.save(menu);
+		return entityToResponse(obj);
 	}
-
-
 
 	@Override
 	public List<MenuResponse> listar() {
@@ -65,19 +67,15 @@ public class MenuServiceImpl   implements IMenuService {
 		return iMenuRepository.findAll().stream().map(this::entityToResponse).collect(Collectors.toList());
 	}
 
-
-
 	@Override
 	public MenuResponse listarPorId(Integer id) {
 		return entityToResponse(iMenuRepository.findById(id).get());
 	}
 
-
-
 	@Override
 	public void eliminar(Integer id) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	private MenuResponse entityToResponse(Menu entity) {
@@ -85,6 +83,5 @@ public class MenuServiceImpl   implements IMenuService {
 		BeanUtils.copyProperties(entity, response);
 		return response;
 	}
-
 
 }

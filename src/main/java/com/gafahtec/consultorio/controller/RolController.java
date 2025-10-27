@@ -113,7 +113,7 @@ public class RolController {
 		return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
 	}
 
-	@Operation(summary = "Listar roles paginados", description = "Obtiene roles paginados.")
+	@Operation(summary = "Listar roles paginados", description = "Obtiene roles paginados. Opcionalmente puede incluir un parámetro de búsqueda para filtrar por nombre del rol.")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "Consulta exitosa"),
 			@ApiResponse(responseCode = "204", description = "Sin contenido"),
@@ -122,8 +122,21 @@ public class RolController {
 	@GetMapping("/pageable")
 	public ResponseEntity<Page<RolResponse>> listarPageable(@PageableDefault(sort = "nombre") Pageable pageable,
 			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "5") int size) throws Exception {
-		var paginas = iRolService.listarPageable(pageable);
+			@RequestParam(defaultValue = "5") int size,
+			@RequestParam(required = false) String search) throws Exception {
+
+		Page<RolResponse> paginas;
+
+		// Si hay un parámetro de búsqueda, usar el método de búsqueda
+		if (search != null && !search.trim().isEmpty()) {
+			System.out.println("=== USANDO BÚSQUEDA ROLES ===");
+			System.out.println("Search parameter received: '" + search + "'");
+			paginas = iRolService.buscarRoles(search.trim(), pageable);
+		} else {
+			System.out.println("=== USANDO LISTADO NORMAL ROLES ===");
+			paginas = iRolService.listarPageable(pageable);
+		}
+
 		if (paginas.isEmpty()) {
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		}

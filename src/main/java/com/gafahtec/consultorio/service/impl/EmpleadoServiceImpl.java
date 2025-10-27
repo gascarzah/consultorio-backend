@@ -3,9 +3,12 @@ package com.gafahtec.consultorio.service.impl;
 import com.gafahtec.consultorio.dto.request.EmpleadoRequest;
 import com.gafahtec.consultorio.dto.request.UsuarioRequest;
 import com.gafahtec.consultorio.dto.response.EmpleadoResponse;
+import com.gafahtec.consultorio.dto.response.TipoEmpleadoResponse;
 import com.gafahtec.consultorio.model.auth.Empleado;
+import com.gafahtec.consultorio.model.auth.TipoEmpleado;
 import com.gafahtec.consultorio.repository.IEmpleadoRepository;
 import com.gafahtec.consultorio.repository.IEmpresaRepository;
+import com.gafahtec.consultorio.repository.ITipoEmpleadoRepository;
 import com.gafahtec.consultorio.service.IEmpleadoService;
 import com.gafahtec.consultorio.service.IUsuarioService;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,12 +34,24 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
 	private final IUsuarioService iUsuarioService;
 	private IEmpleadoRepository iEmpleadoRepository;
 	private IEmpresaRepository iEmpresaRepository;
+	private ITipoEmpleadoRepository iTipoEmpleadoRepository;
 
 	@Override
 	public Page<EmpleadoResponse> listarPageable(Pageable pageable) {
 
 		return iEmpleadoRepository.findAll(pageable)
 				.map(this::entityToResponse);
+	}
+
+	@Override
+	public Page<EmpleadoResponse> buscarEmpleados(String search, Pageable pageable) {
+		System.out.println("=== BUSCAR EMPLEADOS DEBUG ===");
+		System.out.println("Search term: '" + search + "'");
+
+		Page<Empleado> empleados = iEmpleadoRepository.buscarEmpleados(search, pageable);
+		System.out.println("Total empleados found: " + empleados.getTotalElements());
+
+		return empleados.map(this::entityToResponse);
 	}
 
 	@Override
@@ -63,6 +78,8 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
 				.orElseThrow(
 						() -> new EntityNotFoundException("Empresa no encontrada con ID: " + request.getIdEmpresa()));
 
+		TipoEmpleado tipoEmpleado = iTipoEmpleadoRepository.getReferenceById(request.getIdTipoEmpleado());
+
 		var empleado = Empleado.builder()
 				.empresa(empresa)
 				.numeroDocumento(request.getNumeroDocumento())
@@ -70,16 +87,10 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
 				.apellidoPaterno(request.getApellidoPaterno())
 				.nombres(request.getNombres())
 				.direccion(request.getDireccion())
+				.tipoEmpleado(tipoEmpleado)
 				.build();
 		System.out.println(empleado);
 		var obj = iEmpleadoRepository.save(empleado);
-
-		var newUsuario = UsuarioRequest.builder()
-				.email(request.getEmail())
-				.idEmpleado(obj.getIdEmpleado())
-				.idRol(request.getIdRol())
-				.build();
-		iUsuarioService.registrar(newUsuario);
 
 		return entityToResponse(obj);
 	}
@@ -96,7 +107,7 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
 				.findById(request.getIdEmpresa())
 				.orElseThrow(
 						() -> new EntityNotFoundException("Empresa no encontrada con ID: " + request.getIdEmpresa()));
-
+		TipoEmpleado tipoEmpleado = iTipoEmpleadoRepository.getReferenceById(request.getIdTipoEmpleado());
 		// Actualizar los campos del empleado
 		empleadoExistente.setEmpresa(empresa);
 		empleadoExistente.setNumeroDocumento(request.getNumeroDocumento());
@@ -104,28 +115,29 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
 		empleadoExistente.setApellidoPaterno(request.getApellidoPaterno());
 		empleadoExistente.setNombres(request.getNombres());
 		empleadoExistente.setDireccion(request.getDireccion());
-
+		empleadoExistente.setTipoEmpleado(tipoEmpleado);
 		// Guardar los cambios del empleado
 		var empleadoActualizado = iEmpleadoRepository.save(empleadoExistente);
 
-		// Buscar el usuario existente asociado al empleado
-		var usuarioExistente = iUsuarioService.findUsuarioByEmpleado(empleadoActualizado.getIdEmpleado());
-
-		// Actualizar usuario asociado
-		var usuarioRequest = UsuarioRequest.builder()
-				.idUsuario(usuarioExistente.getIdUsuario()) // Importante: incluir el ID del usuario existente
-				.email(request.getEmail())
-				.idEmpleado(empleadoActualizado.getIdEmpleado())
-				.idRol(request.getIdRol())
-				.idEmpresa(request.getIdEmpresa())
-				.nombres(request.getNombres())
-				.apellidoPaterno(request.getApellidoPaterno())
-				.apellidoMaterno(request.getApellidoMaterno())
-				.numeroDocumento(request.getNumeroDocumento())
-				.build();
-
-		// Llamar a modificar en lugar de registrar
-		iUsuarioService.modificar(usuarioRequest);
+		// // Buscar el usuario existente asociado al empleado
+		// var usuarioExistente =
+		// iUsuarioService.findUsuarioByEmpleado(empleadoActualizado.getIdEmpleado());
+		//
+		// // Actualizar usuario asociado
+		// var usuarioRequest = UsuarioRequest.builder()
+		// .idUsuario(usuarioExistente.getIdUsuario()) // Importante: incluir el ID del
+		// usuario existente
+		// .email(request.getEmail())
+		// .idEmpleado(empleadoActualizado.getIdEmpleado())
+		// .idEmpresa(request.getIdEmpresa())
+		// .nombres(request.getNombres())
+		// .apellidoPaterno(request.getApellidoPaterno())
+		// .apellidoMaterno(request.getApellidoMaterno())
+		// .numeroDocumento(request.getNumeroDocumento())
+		// .build();
+		//
+		// // Llamar a modificar en lugar de registrar
+		// iUsuarioService.modificar(usuarioRequest);
 
 		return entityToResponse(empleadoActualizado);
 	}
@@ -165,8 +177,21 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
 		}
 		response.setNumeroDocumento(entity.getNumeroDocumento());
 
-		var usuario = iUsuarioService.findUsuarioByEmpleado(entity.getIdEmpleado());
-		response.setIdRol(usuario.getIdRol());
+		if (entity.getTipoEmpleado() != null) {
+			response.setIdTipoEmpleado(entity.getTipoEmpleado().getIdTipoEmpleado());
+			response.setTipoEmpleadoNombre(entity.getTipoEmpleado().getNombre());
+		}
+		// // Solo intentar obtener el usuario si existe
+		// try {
+		// var usuario = iUsuarioService.findUsuarioByEmpleado(entity.getIdEmpleado());
+		// if (usuario != null) {
+		// response.setIdRol(usuario.getIdRol());
+		// }
+		// } catch (Exception e) {
+		// // Si no hay usuario asociado, continuar sin error
+		// log.info("No hay usuario asociado al empleado con ID: " +
+		// entity.getIdEmpleado());
+		// }
 		return response;
 	}
 }
